@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎯 Dart Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════
+     SETUP SCREEN
+════════════════════════════════════════════════ -->
+<div id="screen-setup">
+  <div class="setup-wrap">
+
+    <h1 class="logo">🎯 DART<span>DASHBOARD</span></h1>
+
+    <!-- Game Mode -->
+    <div>
+      <div class="section-title">SPIELMODUS</div>
+      <div class="mode-grid">
+        <label class="mode-card">
+          <input type="radio" name="mode" value="301">
+          <span class="mc-val">301</span>
+          <span class="mc-sub">Double Out</span>
+        </label>
+        <label class="mode-card">
+          <input type="radio" name="mode" value="501" checked>
+          <span class="mc-val">501</span>
+          <span class="mc-sub">Double Out</span>
+        </label>
+        <label class="mode-card">
+          <input type="radio" name="mode" value="701">
+          <span class="mc-val">701</span>
+          <span class="mc-sub">Double Out</span>
+        </label>
+        <label class="mode-card">
+          <input type="radio" name="mode" value="cricket">
+          <span class="mc-val">🏏</span>
+          <span class="mc-sub">Cricket</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Players -->
+    <div>
+      <div class="section-title">SPIELER</div>
+      <div class="players-list" id="players-list">
+        <div class="player-row">
+          <input class="player-input" type="text" placeholder="Spieler 1" value="Spieler 1">
+          <button class="btn-rm" onclick="rmPlayer(this)">✕</button>
+        </div>
+        <div class="player-row">
+          <input class="player-input" type="text" placeholder="Spieler 2" value="Spieler 2">
+          <button class="btn-rm" onclick="rmPlayer(this)">✕</button>
+        </div>
+      </div>
+      <button class="btn-add-player" onclick="addPlayer()">＋ Spieler hinzufügen</button>
+    </div>
+
+    <button class="btn-start" onclick="startGame()">SPIEL STARTEN →</button>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════
+     GAME SCREEN
+════════════════════════════════════════════════ -->
+<div id="screen-game" class="hidden">
+
+  <!-- Top bar -->
+  <header class="game-header">
+    <div class="hdr-l">
+      <span class="mode-badge" id="mode-badge">501</span>
+      <span class="round-label">Runde <span id="round-num">1</span></span>
+    </div>
+    <div class="hdr-logo">🎯 DART</div>
+    <div class="hdr-r">
+      <button class="btn-icon" onclick="goSetup()" title="Neues Spiel">↩ Neu</button>
+    </div>
+  </header>
+
+  <div class="game-layout">
+
+    <!-- ── LEFT: Scoreboard + Round Table ── -->
+    <aside class="side-panel" id="panel-left">
+      <div class="panel-title">PUNKTESTAND</div>
+      <div id="scoreboard"></div>
+
+      <div class="panel-title" style="margin-top:.5rem">RUNDENÜBERSICHT</div>
+      <div id="round-table"></div>
+    </aside>
+
+    <!-- ── CENTER: Input ── -->
+    <section class="input-center" id="input-center">
+
+      <!-- Turn-end summary overlay -->
+      <div id="turn-end-overlay" class="hidden"></div>
+
+      <!-- Mode toggle -->
+      <div class="input-toggle">
+        <button class="tog-btn is-on" id="tog-board"  onclick="setMode('board')">🎯 Scheibe</button>
+        <button class="tog-btn"       id="tog-keypad" onclick="setMode('keypad')">🔢 Tastenfeld</button>
+      </div>
+
+      <!-- Dartboard -->
+      <div class="board-wrap" id="board-wrap">
+        <svg id="dart-svg" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg"></svg>
+        <button class="btn-miss-board" onclick="doThrow(0,1)">◉ MISS</button>
+      </div>
+
+      <!-- Keypad -->
+      <div class="keypad-wrap hidden" id="keypad-wrap">
+        <div class="mult-row">
+          <button class="mult-btn is-on" data-m="1" onclick="setMult(1)">Single</button>
+          <button class="mult-btn"       data-m="2" onclick="setMult(2)">Double</button>
+          <button class="mult-btn"       data-m="3" onclick="setMult(3)">Triple</button>
+        </div>
+        <div class="num-grid" id="num-grid"></div>
+        <div class="spec-row">
+          <button class="n-btn spec is-bull"  onclick="doThrow(25,1)">Outer<br>Bull<br><small>25</small></button>
+          <button class="n-btn spec is-bull"  onclick="doThrow(25,2)">🎯 BULL<br><small>50 Pkt</small></button>
+          <button class="n-btn spec is-miss"  onclick="doThrow(0,1)">◉<br>MISS</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── RIGHT: Current Turn ── -->
+    <aside class="side-panel" id="panel-right">
+      <div class="panel-title">AKTUELLER ZUG</div>
+      <div class="turn-player-name" id="turn-player">—</div>
+
+      <!-- Throw slots -->
+      <div class="throw-slots">
+        <div class="t-slot" id="s0">_</div>
+        <div class="t-slot" id="s1">_</div>
+        <div class="t-slot" id="s2">_</div>
+      </div>
+
+      <div class="turn-summary" id="turn-summary"></div>
+
+      <!-- Controls -->
+      <div class="controls">
+        <button class="btn-ctrl" onclick="undo()">↩ Letzten Wurf rückgängig</button>
+        <button class="btn-ctrl" onclick="skipTurn()">Spieler überspringen →</button>
+      </div>
+
+      <!-- Bust notification -->
+      <div class="bust-box hidden" id="bust-box">💥 BUST!</div>
+
+      <!-- Last completed turn -->
+      <div class="last-turn-box hidden" id="last-turn-box">
+        <div class="lt-header">LETZTER ZUG</div>
+        <div class="lt-name"   id="lt-name"></div>
+        <div class="lt-throws" id="lt-throws"></div>
+        <div class="lt-total"  id="lt-total"></div>
+      </div>
+
+      <!-- Round history -->
+      <div class="hist-title">LETZTE RUNDEN</div>
+      <div id="hist-list"></div>
+    </aside>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════
+     WINNER MODAL
+════════════════════════════════════════════════ -->
+<div class="modal-bg hidden" id="win-modal">
+  <div class="modal-card">
+    <div class="trophy">🏆</div>
+    <div class="win-label">GEWINNER</div>
+    <div class="win-name" id="win-name"></div>
+    <div class="win-sub"  id="win-sub"></div>
+    <button class="btn-start" style="margin-top:1rem" onclick="goSetup()">NEUES SPIEL</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
