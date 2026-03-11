@@ -629,14 +629,14 @@
    function buildKeypad() {
      const grid = $('num-grid');
      grid.innerHTML = '';
-     BOARD_ORDER.forEach(n => {
+     for(let n = 1; n <= 20; n++) {
        const b = document.createElement('button');
        b.className   = 'n-btn';
        b.textContent = n;
        b.dataset.num = n;
        b.onclick     = () => doThrow(n, kMult);
        grid.appendChild(b);
-     });
+     };
    }
    
    // ── Dartboard SVG ─────────────────────────────────────
