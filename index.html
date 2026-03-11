@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dart Dashboard</title>
-  <link rel="icon" type="image/x-icon" href="favicon.ico"> 
+  <title>🎯 Dart Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -144,10 +143,22 @@
 
       <div class="turn-summary" id="turn-summary"></div>
 
+      <!-- Checkout suggestion (x01 only) -->
+      <div class="checkout-box hidden" id="checkout-box"></div>
+
       <!-- Controls -->
       <div class="controls">
         <button class="btn-ctrl" onclick="undo()">↩ Letzten Wurf rückgängig</button>
+        <button class="undo-history-toggle" onclick="toggleUndoHistory()">
+          <span>📋 Spielverlauf</span>
+          <span class="uh-badge" id="undo-history-badge"></span>
+        </button>
         <button class="btn-ctrl" onclick="skipTurn()">Spieler überspringen →</button>
+      </div>
+
+      <!-- Undo history panel (collapsible) -->
+      <div class="undo-history-panel hidden" id="undo-history-panel">
+        <div id="undo-history-list"></div>
       </div>
 
       <!-- Bust notification -->
