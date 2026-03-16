@@ -9,38 +9,116 @@
 </head>
 <body>
 
-<!-- ════════ SETUP SCREEN ════════════════════════ -->
+<!-- ════════════════ START SCREEN ════════════════════ -->
 <div id="screen-setup">
-  <div class="setup-wrap">
-    <h1 class="logo">🎯 DART<span>DASHBOARD</span></h1>
-    <div>
-      <div class="section-title">SPIELMODUS</div>
-      <div class="mode-grid">
-        <label class="mode-card"><input type="radio" name="mode" value="301"><span class="mc-val">301</span><span class="mc-sub">Double Out</span></label>
-        <label class="mode-card"><input type="radio" name="mode" value="501" checked><span class="mc-val">501</span><span class="mc-sub">Double Out</span></label>
-        <label class="mode-card"><input type="radio" name="mode" value="701"><span class="mc-val">701</span><span class="mc-sub">Double Out</span></label>
-        <label class="mode-card"><input type="radio" name="mode" value="cricket"><span class="mc-val">🏏</span><span class="mc-sub">Cricket</span></label>
-      </div>
-    </div>
-    <div>
-      <div class="section-title">SPIELER</div>
-      <div class="players-list" id="players-list">
-        <div class="player-row">
-          <input class="player-input" type="text" placeholder="Spieler 1" value="Spieler 1">
-          <button class="btn-rm" onclick="rmPlayer(this)">✕</button>
-        </div>
-        <div class="player-row">
-          <input class="player-input" type="text" placeholder="Spieler 2" value="Spieler 2">
-          <button class="btn-rm" onclick="rmPlayer(this)">✕</button>
-        </div>
-      </div>
-      <button class="btn-add-player" onclick="addPlayer()">＋ Spieler hinzufügen</button>
-    </div>
-    <button class="btn-start" onclick="startGame()">SPIEL STARTEN →</button>
+
+  <!-- Animated background canvas -->
+  <canvas id="setup-canvas"></canvas>
+
+  <!-- Animated background dartboard (SVG) -->
+  <div class="setup-bg-board" id="setup-bg-board">
+    <svg id="setup-board-svg" viewBox="0 0 460 460" xmlns="http://www.w3.org/2000/svg"></svg>
   </div>
+
+  <div class="setup-inner">
+
+    <!-- Hero -->
+    <div class="setup-hero">
+      <div class="setup-hero-board-wrap">
+        <svg class="setup-hero-svg" id="setup-hero-svg" viewBox="0 0 460 460" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="setup-hero-glow"></div>
+        <button class="setup-board-style-btn" onclick="openStylePickerFromSetup()" id="setup-board-btn">
+          <span class="sbsb-dot" id="sbsb-dot"></span>
+          <span id="sbsb-name">Classic</span>
+          <span class="sbsb-arrow">›</span>
+        </button>
+      </div>
+      <div class="setup-logo-wrap">
+        <div class="setup-logo-text">
+          <span class="setup-logo-letter" style="--i:0">D</span><span class="setup-logo-letter" style="--i:1">A</span><span class="setup-logo-letter" style="--i:2">R</span><span class="setup-logo-letter" style="--i:3">T</span>
+        </div>
+        <div class="setup-logo-sub">DASHBOARD</div>
+        <div class="setup-score-ticker" id="setup-score-ticker">
+          <span class="sst-label">HIGHSCORE</span>
+          <span class="sst-val" id="sst-val">180</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Config Card -->
+    <div class="setup-card">
+      <div class="setup-theme-row">
+        <button class="ui-theme-btn" onclick="openUiThemePicker()" title="Design wählen">🎭 Design</button>
+        <span class="ui-theme-current-label" id="ui-theme-label">Cyber</span>
+      </div>
+
+      <!-- Mode -->
+      <div>
+        <div class="setup-section-title">Spielmodus</div>
+        <div class="mode-grid">
+          <label class="mode-card">
+            <input type="radio" name="mode" value="301" checked>
+            <span class="mc-val">301</span><span class="mc-sub">x01</span>
+          </label>
+          <label class="mode-card">
+            <input type="radio" name="mode" value="501">
+            <span class="mc-val">501</span><span class="mc-sub">x01</span>
+          </label>
+          <label class="mode-card">
+            <input type="radio" name="mode" value="701">
+            <span class="mc-val">701</span><span class="mc-sub">x01</span>
+          </label>
+          <label class="mode-card">
+            <input type="radio" name="mode" value="cricket">
+            <span class="mc-val">🏏</span><span class="mc-sub">Cricket</span>
+          </label>
+        </div>
+        <div class="out-toggle-wrap" id="out-toggle-wrap">
+          <span class="out-toggle-label">Abschluss</span>
+          <div class="out-toggle">
+            <button class="out-btn is-on" id="out-btn-so" onclick="setOutType('straight')">Straight Out</button>
+            <button class="out-btn"       id="out-btn-do" onclick="setOutType('double')">Double Out</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Players -->
+      <div>
+        <div class="setup-section-title">Spieler</div>
+        <div class="players-list" id="players-list">
+          <div class="player-row">
+            <input class="player-input" type="text" placeholder="Spieler 1" value="Spieler 1">
+            <button class="btn-rm" onclick="rmPlayer(this)">✕</button>
+          </div>
+          <div class="player-row">
+            <input class="player-input" type="text" placeholder="Spieler 2" value="Spieler 2">
+            <button class="btn-rm" onclick="rmPlayer(this)">✕</button>
+          </div>
+        </div>
+        <button class="btn-add-player" onclick="addPlayer()">＋ Spieler hinzufügen</button>
+      <div id="players-max-msg" class="players-max-msg" style="display:none">Maximal 4 Spieler</div>
+      </div>
+
+      <button class="btn-start" onclick="startGame(false)">SPIEL STARTEN →</button>
+      <div class="setup-row-btns">
+        <button class="btn-practice" id="btn-practice" onclick="togglePracticeMode()">🤖 Gegen Bot üben</button>
+        <button class="btn-mute" id="btn-mute" onclick="toggleMute()" title="Ton an/aus">🔊</button>
+      </div>
+      <div class="bot-speed-wrap hidden" id="bot-speed-wrap">
+        <span class="out-toggle-label">Bot-Tempo</span>
+        <div class="out-toggle">
+          <button class="out-btn" data-speed="1500" onclick="setBotSpeed(this)">Langsam</button>
+          <button class="out-btn is-on" data-speed="900" onclick="setBotSpeed(this)">Normal</button>
+          <button class="out-btn" data-speed="400" onclick="setBotSpeed(this)">Profi</button>
+        </div>
+      </div>
+
+    </div><!-- /.setup-card -->
+  </div><!-- /.setup-inner -->
 </div>
 
-<!-- ════════ GAME SCREEN ═════════════════════════ -->
+
+<!-- ════════════════ GAME SCREEN ═════════════════════ -->
 <div id="screen-game" class="hidden">
 
   <header class="game-header">
@@ -49,33 +127,37 @@
       <span class="round-label">Runde <span id="round-num">1</span></span>
     </div>
     <div class="hdr-active">
-      <span class="hdr-active-name" id="hdr-active-name">—</span>
+      <span class="hdr-active-name"  id="hdr-active-name">—</span>
       <span class="hdr-active-score" id="hdr-active-score"></span>
     </div>
     <div class="hdr-r">
-      <!-- Desktop: just "Neu" button -->
-      <button class="btn-icon hdr-undo" onclick="undo()" title="Undo">↩</button>
-      <button class="btn-icon" onclick="goSetup()">Neu</button>
+      <button class="btn-icon hdr-undo"   onclick="undo()"             title="Rückgängig">↩</button>
+      <button class="btn-icon"            onclick="toggleMute()"       title="Ton an/aus" id="hdr-mute">🔊</button>
+      <button class="btn-icon"            onclick="openUiThemePicker()" title="Design">🎭</button>
+      <button class="btn-icon"            onclick="openStylePicker()"  title="Board Style">🎨</button>
+      <button class="btn-icon"            onclick="openPlayerStats()"  title="Bestenliste">📈</button>
+      <button class="btn-icon"            onclick="toggleFullscreen()" title="Vollbild" id="btn-fullscreen">⛶</button>
+      <button class="btn-icon"            onclick="goSetup()">Neu</button>
     </div>
   </header>
 
   <div class="game-layout" id="game-layout">
 
-    <!-- LEFT -->
+    <!-- LEFT: Scoreboard -->
     <aside class="side-panel" id="panel-left">
-      <div class="panel-title">PUNKTESTAND</div>
+      <div class="panel-title">Punktestand</div>
       <div id="scoreboard"></div>
-      <div class="panel-title" style="margin-top:.3rem">RUNDENÜBERSICHT</div>
+      <div class="panel-title" style="margin-top:.4rem">Rundenübersicht</div>
       <div class="round-table-wrap">
         <div id="round-table"></div>
       </div>
     </aside>
 
-    <!-- CENTER -->
+    <!-- CENTER: Input -->
     <section class="input-center" id="input-center">
       <div id="turn-end-overlay" class="hidden"></div>
 
-      <!-- Mobile: compact score strip (hidden on desktop) -->
+      <!-- Mobile score strip -->
       <div class="mob-score-strip hidden" id="mob-score-strip"></div>
 
       <div class="input-toggle">
@@ -83,18 +165,20 @@
         <button class="tog-btn"       id="tog-keypad" onclick="setMode('keypad')">🔢 Tastenfeld</button>
       </div>
 
-      <!-- Mobile throw slots shown inside input center -->
+      <!-- Mobile throw slots -->
       <div class="mob-throw-row hidden" id="mob-throw-row">
         <div class="t-slot is-empty" id="ms0"></div>
         <div class="t-slot is-empty" id="ms1"></div>
         <div class="t-slot is-empty" id="ms2"></div>
       </div>
 
+      <!-- Dartboard -->
       <div class="board-wrap" id="board-wrap">
-        <svg id="dart-svg" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg"></svg>
-        <button class="btn-miss-board" onclick="doThrow(0,1)">◉ MISS</button>
+        <svg id="dart-svg" viewBox="0 0 460 460" xmlns="http://www.w3.org/2000/svg"></svg>
+        <button class="btn-miss-board" onclick="doThrow(0,1)">◉ &nbsp;MISS</button>
       </div>
 
+      <!-- Keypad -->
       <div class="keypad-wrap hidden" id="keypad-wrap">
         <div class="mult-row">
           <button class="mult-btn is-on" data-m="1" onclick="setMult(1)">Single</button>
@@ -104,30 +188,32 @@
         <div class="num-grid" id="num-grid"></div>
         <div class="spec-row">
           <button class="n-btn spec is-bull" onclick="doThrow(25,1)">Outer<br>Bull<br><small>25</small></button>
-          <button class="n-btn spec is-bull" onclick="doThrow(25,2)">🎯 BULL<br><small>50 Pkt</small></button>
-          <button class="n-btn spec is-miss" onclick="doThrow(0,1)">◉<br>MISS</button>
+          <button class="n-btn spec is-bull" onclick="doThrow(25,2)">🎯 Bull<br><small>50 Pkt</small></button>
+          <button class="n-btn spec is-miss" onclick="doThrow(0,1)">◉<br>Miss</button>
         </div>
         <div class="kbd-hint">
-          <span class="kbd">1</span>–<span class="kbd">20</span> &nbsp;·&nbsp;
-          <span class="kbd">d</span> D &nbsp;·&nbsp;
-          <span class="kbd">t</span> T &nbsp;·&nbsp;
-          <span class="kbd">b</span> Bull &nbsp;·&nbsp;
-          <span class="kbd">m</span> Miss &nbsp;·&nbsp;
+          <span class="kbd">1</span>–<span class="kbd">20</span> ·
+          <span class="kbd">d</span> D ·
+          <span class="kbd">t</span> T ·
+          <span class="kbd">b</span> Bull ·
+          <span class="kbd">m</span> Miss ·
           <span class="kbd">z</span> Undo
         </div>
       </div>
 
+      <!-- Checkout -->
       <div class="checkout-box hidden" id="checkout-box"></div>
 
-      <!-- Mobile: bust toast (shows in input view too) -->
+      <!-- Mobile bust toast -->
       <div class="mob-bust hidden" id="mob-bust">💥 BUST!</div>
     </section>
 
-    <!-- RIGHT -->
+    <!-- RIGHT: Turn info -->
     <aside class="side-panel" id="panel-right">
+
       <div class="bust-box hidden" id="bust-box">💥 BUST!</div>
 
-      <div class="panel-title">AKTUELLER ZUG</div>
+      <div class="panel-title">Aktueller Zug</div>
       <div class="turn-player-name" id="turn-player">—</div>
 
       <div class="throw-slots">
@@ -139,20 +225,20 @@
       <div class="turn-summary" id="turn-summary"></div>
 
       <div class="last-turn-box hidden" id="last-turn-box">
-        <div class="lt-header">LETZTER ZUG</div>
+        <div class="lt-header">Letzter Zug</div>
         <div class="lt-name"   id="lt-name"></div>
         <div class="lt-throws" id="lt-throws"></div>
         <div class="lt-total"  id="lt-total"></div>
       </div>
 
-      <div class="panel-title" style="margin-top:.2rem">LETZTE RUNDEN</div>
+      <div class="panel-title" style="margin-top:.2rem">Letzte Runden</div>
       <div class="hist-tabs" id="hist-tabs"></div>
       <div class="hist-list-wrap">
         <div id="hist-list"></div>
       </div>
 
       <div class="controls">
-        <button class="btn-ctrl" onclick="undo()">↩ Wurf rückgängig</button>
+        <button class="btn-ctrl"           onclick="undo()">↩ Wurf rückgängig</button>
         <button class="undo-history-toggle" onclick="toggleUndoHistory()">
           <span>📋 Spielverlauf</span>
           <span class="uh-badge" id="undo-history-badge"></span>
@@ -162,18 +248,19 @@
         </div>
         <button class="btn-ctrl btn-skip" onclick="confirmSkip()">Spieler überspringen</button>
       </div>
-    </aside>
-  </div>
 
-  <!-- Mobile bottom navigation -->
+    </aside>
+  </div><!-- /.game-layout -->
+
+  <!-- Mobile bottom nav -->
   <nav class="mob-nav hidden" id="mob-nav">
-    <button class="mob-tab is-active" data-tab="input" onclick="setMobTab('input')">
-      <span class="mob-tab-icon">🎯</span>
-      <span class="mob-tab-label">Eingabe</span>
-    </button>
     <button class="mob-tab" data-tab="score" onclick="setMobTab('score')">
       <span class="mob-tab-icon">📊</span>
       <span class="mob-tab-label">Punkte</span>
+    </button>
+    <button class="mob-tab is-active" data-tab="input" onclick="setMobTab('input')">
+      <span class="mob-tab-icon">🎯</span>
+      <span class="mob-tab-label">Wurf</span>
     </button>
     <button class="mob-tab" data-tab="turn" onclick="setMobTab('turn')">
       <span class="mob-tab-icon">📋</span>
@@ -182,16 +269,22 @@
     </button>
   </nav>
 
-</div><!-- end #screen-game -->
+</div><!-- /#screen-game -->
 
-<!-- WINNER MODAL -->
+
+<!-- ════════════════ WINNER MODAL ════════════════════ -->
 <div class="modal-bg hidden" id="win-modal">
   <div class="modal-card">
     <div class="trophy">🏆</div>
-    <div class="win-label">GEWINNER</div>
+    <div class="win-label">Gewinner</div>
     <div class="win-name" id="win-name"></div>
     <div class="win-sub"  id="win-sub"></div>
-    <button class="btn-start" style="margin-top:1.5rem" onclick="goSetup()">NEUES SPIEL</button>
+    <div class="win-stats" id="win-stats"></div>
+    <div class="win-qr"   id="win-qr"></div>
+    <div class="win-actions">
+      <button class="btn-start" onclick="goSetup()">Neues Spiel</button>
+      <button class="btn-rematch" onclick="startRematch()">↺ Revanche</button>
+    </div>
   </div>
 </div>
 
