@@ -13,7 +13,7 @@ const GAME_MODES = {
 const CRICKET_NUMS = [20, 19, 18, 17, 16, 15, 25];
 
 // Dartboard number order (used for keypad sorting)
-const BOARD_ORDER = [20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
+const BOARD_ORDER = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
 
 // ── Checkout Table ────────────────────────────────────
 const CHECKOUT_TABLE = (function () {
@@ -215,6 +215,7 @@ function startGame() {
 function goSetup() {
   hide('screen-game');
   hide('win-modal');
+  hide('mob-nav');
   show('screen-setup');
   game = null; lastTurn = null;
 }
@@ -241,7 +242,7 @@ function doThrow(base, mult) {
     histTabIdx = prevIdx;
   }
 
-  if (result.bust) flashBust();
+  if (result.bust) { flashBust(); flashMobBust(); }
   if (result.winner) showWinner(result.winner);
   render();
 }
@@ -253,6 +254,7 @@ function undo() {
     $('turn-end-overlay').classList.add('hidden');
     _overlayActive = false;
     hideBust();
+    clearMobBust();
     render();
   }
 }
@@ -264,6 +266,7 @@ function undoToIndex(idx) {
     $('turn-end-overlay').classList.add('hidden');
     _overlayActive = false;
     hideBust();
+    clearMobBust();
     hide('undo-history-panel');
     render();
   }
@@ -734,3 +737,164 @@ function buildBoard() {
     t.textContent=num;
   });
 }
+
+/* ═══════════════════════════════════════════════════
+   MOBILE NAV
+   ═══════════════════════════════════════════════════ */
+let mobTab = 'input';
+let _mobBustTimer = null;
+
+function isMobile() { return window.innerWidth <= 768; }
+
+function initMobileNav() {
+  if (isMobile()) {
+    const nav = $('mob-nav');
+    if (nav) nav.classList.remove('hidden');
+    setMobTab('input');
+  }
+}
+
+function setMobTab(tab) {
+  mobTab = tab;
+  const layout = $('game-layout');
+  if (layout) layout.dataset.mobTab = tab;
+
+  // Update tab button states
+  document.querySelectorAll('.mob-tab').forEach(btn => {
+    btn.classList.toggle('is-active', btn.dataset.tab === tab);
+  });
+}
+
+function renderMobScoreStrip() {
+  if (!game || !isMobile()) return;
+  const el = $('mob-score-strip');
+  if (!el) return;
+  el.classList.remove('hidden');
+
+  if (game.mode === 'cricket') {
+    el.innerHTML = game.players.map((p, i) => {
+      const act = i === game.currentPlayerIdx;
+      // Count closed marks
+      const closed = Object.values(p.marks).filter(m => m >= 3).length;
+      return `<div class="mob-score-pill ${act ? 'is-active' : ''}">
+        <div class="msp-name">${esc(p.name)}</div>
+        <div class="msp-val">${p.score}</div>
+        <div class="msp-marks">${closed}/7 ✕</div>
+      </div>`;
+    }).join('');
+  } else {
+    el.innerHTML = game.players.map((p, i) => {
+      const act = i === game.currentPlayerIdx;
+      return `<div class="mob-score-pill ${act ? 'is-active' : ''}">
+        <div class="msp-name">${esc(p.name)}</div>
+        <div class="msp-val">${p.score}</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function renderMobThrowRow() {
+  if (!game || !isMobile()) return;
+  const el = $('mob-throw-row');
+  if (el) el.classList.remove('hidden');
+  const throws = game.throwsThisTurn;
+  for (let i = 0; i < 3; i++) {
+    const sl = $('ms' + i);
+    if (!sl) continue;
+    if (i < throws.length) {
+      sl.textContent = throws[i].label;
+      sl.classList.remove('is-empty');
+      sl.classList.add('is-filled');
+    } else {
+      sl.textContent = '';
+      sl.classList.add('is-empty');
+      sl.classList.remove('is-filled');
+    }
+  }
+}
+
+function clearMobBust() {
+  clearTimeout(_mobBustTimer);
+  const el = $('mob-bust');
+  if (el) { el.classList.remove('is-visible'); el.classList.add('hidden'); }
+  const badge = $('mob-tab-badge');
+  if (badge) badge.classList.add('hidden');
+}
+
+function flashMobBust() {
+  if (!isMobile()) return;
+  const el = $('mob-bust');
+  if (!el) return;
+  clearTimeout(_mobBustTimer);
+  el.classList.remove('hidden');   // must remove hidden so !important doesn't block us
+  el.classList.add('is-visible');
+  _mobBustTimer = setTimeout(() => {
+    el.classList.remove('is-visible');
+    el.classList.add('hidden');
+  }, 2200);
+
+  // Show badge on Zug tab
+  const badge = $('mob-tab-badge');
+  if (badge) {
+    badge.classList.remove('hidden');
+    setTimeout(() => badge.classList.add('hidden'), 2500);
+  }
+}
+
+// Patch render() to also update mobile elements
+const _origRender = render;
+// Override render to add mobile updates
+window.render = function() {
+  _origRender();
+  renderMobScoreStrip();
+  renderMobThrowRow();
+};
+
+// Patch startGame to init mobile nav
+const _origStartGame = startGame;
+window.startGame = function() {
+  _origStartGame();
+  initMobileNav();
+};
+
+// Re-init on resize
+window.addEventListener('resize', () => {
+  if (game && isMobile()) {
+    initMobileNav();
+    render();
+  }
+});
+
+// ── Swipe Gestures for tab navigation ────────────────
+(function initSwipe() {
+  let startX = 0, startY = 0;
+  const TAB_ORDER = ['score', 'input', 'turn']; // left to right
+
+  function onTouchStart(e) {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }
+
+  function onTouchEnd(e) {
+    if (!game || !isMobile()) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    // Ignore mostly-vertical swipes
+    if (Math.abs(dy) > Math.abs(dx) * 0.8) return;
+    if (Math.abs(dx) < 40) return;
+
+    const cur = TAB_ORDER.indexOf(mobTab);
+    if (dx < 0 && cur < TAB_ORDER.length - 1) setMobTab(TAB_ORDER[cur + 1]); // swipe left → next
+    if (dx > 0 && cur > 0)                    setMobTab(TAB_ORDER[cur - 1]); // swipe right → prev
+  }
+
+  document.addEventListener('touchstart', onTouchStart, { passive: true });
+  document.addEventListener('touchend',   onTouchEnd,   { passive: true });
+})();
+
+// ── Prevent double-tap zoom on buttons ───────────────
+document.addEventListener('touchend', e => {
+  if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+    e.preventDefault();
+  }
+}, { passive: false });

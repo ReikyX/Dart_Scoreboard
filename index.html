@@ -2,14 +2,14 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>🎯 Dart Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- SETUP -->
+<!-- ════════ SETUP SCREEN ════════════════════════ -->
 <div id="screen-setup">
   <div class="setup-wrap">
     <h1 class="logo">🎯 DART<span>DASHBOARD</span></h1>
@@ -40,8 +40,9 @@
   </div>
 </div>
 
-<!-- GAME -->
+<!-- ════════ GAME SCREEN ═════════════════════════ -->
 <div id="screen-game" class="hidden">
+
   <header class="game-header">
     <div class="hdr-l">
       <span class="mode-badge" id="mode-badge">501</span>
@@ -52,11 +53,13 @@
       <span class="hdr-active-score" id="hdr-active-score"></span>
     </div>
     <div class="hdr-r">
-      <button class="btn-icon" onclick="goSetup()">↩ Neu</button>
+      <!-- Desktop: just "Neu" button -->
+      <button class="btn-icon hdr-undo" onclick="undo()" title="Undo">↩</button>
+      <button class="btn-icon" onclick="goSetup()">Neu</button>
     </div>
   </header>
 
-  <div class="game-layout">
+  <div class="game-layout" id="game-layout">
 
     <!-- LEFT -->
     <aside class="side-panel" id="panel-left">
@@ -71,14 +74,27 @@
     <!-- CENTER -->
     <section class="input-center" id="input-center">
       <div id="turn-end-overlay" class="hidden"></div>
+
+      <!-- Mobile: compact score strip (hidden on desktop) -->
+      <div class="mob-score-strip hidden" id="mob-score-strip"></div>
+
       <div class="input-toggle">
         <button class="tog-btn is-on" id="tog-board"  onclick="setMode('board')">🎯 Scheibe</button>
         <button class="tog-btn"       id="tog-keypad" onclick="setMode('keypad')">🔢 Tastenfeld</button>
       </div>
+
+      <!-- Mobile throw slots shown inside input center -->
+      <div class="mob-throw-row hidden" id="mob-throw-row">
+        <div class="t-slot is-empty" id="ms0"></div>
+        <div class="t-slot is-empty" id="ms1"></div>
+        <div class="t-slot is-empty" id="ms2"></div>
+      </div>
+
       <div class="board-wrap" id="board-wrap">
         <svg id="dart-svg" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg"></svg>
         <button class="btn-miss-board" onclick="doThrow(0,1)">◉ MISS</button>
       </div>
+
       <div class="keypad-wrap hidden" id="keypad-wrap">
         <div class="mult-row">
           <button class="mult-btn is-on" data-m="1" onclick="setMult(1)">Single</button>
@@ -92,28 +108,28 @@
           <button class="n-btn spec is-miss" onclick="doThrow(0,1)">◉<br>MISS</button>
         </div>
         <div class="kbd-hint">
-          <span class="kbd">1</span>–<span class="kbd">20</span> werfen &nbsp;·&nbsp;
-          <span class="kbd">d</span> Double &nbsp;·&nbsp;
-          <span class="kbd">t</span> Triple &nbsp;·&nbsp;
+          <span class="kbd">1</span>–<span class="kbd">20</span> &nbsp;·&nbsp;
+          <span class="kbd">d</span> D &nbsp;·&nbsp;
+          <span class="kbd">t</span> T &nbsp;·&nbsp;
           <span class="kbd">b</span> Bull &nbsp;·&nbsp;
           <span class="kbd">m</span> Miss &nbsp;·&nbsp;
           <span class="kbd">z</span> Undo
         </div>
       </div>
+
       <div class="checkout-box hidden" id="checkout-box"></div>
+
+      <!-- Mobile: bust toast (shows in input view too) -->
+      <div class="mob-bust hidden" id="mob-bust">💥 BUST!</div>
     </section>
 
     <!-- RIGHT -->
     <aside class="side-panel" id="panel-right">
-
-      <!-- BUST at top -->
       <div class="bust-box hidden" id="bust-box">💥 BUST!</div>
 
-      <!-- Current player -->
       <div class="panel-title">AKTUELLER ZUG</div>
       <div class="turn-player-name" id="turn-player">—</div>
 
-      <!-- Throw slots -->
       <div class="throw-slots">
         <div class="t-slot is-empty" id="s0"></div>
         <div class="t-slot is-empty" id="s1"></div>
@@ -122,7 +138,6 @@
 
       <div class="turn-summary" id="turn-summary"></div>
 
-      <!-- Last completed turn -->
       <div class="last-turn-box hidden" id="last-turn-box">
         <div class="lt-header">LETZTER ZUG</div>
         <div class="lt-name"   id="lt-name"></div>
@@ -130,14 +145,12 @@
         <div class="lt-total"  id="lt-total"></div>
       </div>
 
-      <!-- History (all players, tabbed) -->
       <div class="panel-title" style="margin-top:.2rem">LETZTE RUNDEN</div>
       <div class="hist-tabs" id="hist-tabs"></div>
       <div class="hist-list-wrap">
         <div id="hist-list"></div>
       </div>
 
-      <!-- Controls at bottom -->
       <div class="controls">
         <button class="btn-ctrl" onclick="undo()">↩ Wurf rückgängig</button>
         <button class="undo-history-toggle" onclick="toggleUndoHistory()">
@@ -149,10 +162,27 @@
         </div>
         <button class="btn-ctrl btn-skip" onclick="confirmSkip()">Spieler überspringen</button>
       </div>
-
     </aside>
   </div>
-</div>
+
+  <!-- Mobile bottom navigation -->
+  <nav class="mob-nav hidden" id="mob-nav">
+    <button class="mob-tab is-active" data-tab="input" onclick="setMobTab('input')">
+      <span class="mob-tab-icon">🎯</span>
+      <span class="mob-tab-label">Eingabe</span>
+    </button>
+    <button class="mob-tab" data-tab="score" onclick="setMobTab('score')">
+      <span class="mob-tab-icon">📊</span>
+      <span class="mob-tab-label">Punkte</span>
+    </button>
+    <button class="mob-tab" data-tab="turn" onclick="setMobTab('turn')">
+      <span class="mob-tab-icon">📋</span>
+      <span class="mob-tab-label">Zug</span>
+      <span class="mob-tab-badge hidden" id="mob-tab-badge"></span>
+    </button>
+  </nav>
+
+</div><!-- end #screen-game -->
 
 <!-- WINNER MODAL -->
 <div class="modal-bg hidden" id="win-modal">
