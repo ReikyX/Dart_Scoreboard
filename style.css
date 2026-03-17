@@ -5032,3 +5032,218 @@ body[data-ui-theme="matrix"] .game-header { position: relative; z-index: 1; }
   font-size: .6rem !important;
   letter-spacing: .3em !important;
 }
+
+/* ════════════════════════════════════════════════════════
+   BARRIEREFREIHEIT & MOBILE UX — ToDo-Liste
+   ════════════════════════════════════════════════════════ */
+
+/* ── 1. Skip-Link für Tastaturnutzer ─────────────────── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  background: var(--accent);
+  color: #000;
+  font-family: var(--display);
+  font-size: .75rem;
+  font-weight: 700;
+  padding: .6rem 1rem;
+  border-radius: 0 0 8px 8px;
+  z-index: 9999;
+  text-decoration: none;
+  transition: top .15s;
+}
+.skip-link:focus { top: 0; }
+
+/* ── 2. :focus-visible — sichtbarer Fokus-Ring ────────── */
+:focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 3px !important;
+}
+/* Reset für Maus-Klicks (kein Fokus-Ring beim Klicken) */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ── 3. Mindest-Schriftgrößen (≥ 12px = 0.75rem) ──────── */
+.mob-tab-label {
+  font-size: .75rem !important;   /* war .48rem = 7.7px */
+  letter-spacing: .06em !important;
+}
+.mob-score-pill .msp-name {
+  font-size: .7rem !important;    /* war .5rem = 8px */
+}
+.mob-score-pill .msp-marks {
+  font-size: .68rem !important;
+}
+.cr-row.cr-head .cr-p,
+.cr-row.cr-head .cr-num {
+  font-size: .68rem !important;   /* war .56rem */
+}
+.setup-section-title {
+  font-size: .72rem !important;
+}
+
+/* ── 4. Mindest-Touch-Target 44×44px ──────────────────── */
+.btn-rm {
+  min-width:  44px !important;
+  min-height: 44px !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+.mob-tab {
+  min-height: 44px !important;
+}
+.hist-tab {
+  min-height: 36px;
+  padding: .4rem .6rem !important;
+}
+.btn-icon {
+  min-width:  36px;
+  min-height: 36px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── 5. Mobile Header: overflow-Menü ──────────────────── */
+/* On screens ≤ 480px hide low-priority header buttons,
+   show them in a collapsible overflow menu */
+@media (max-width: 480px) {
+  /* Hide: design, board-style, bestenliste, fullscreen */
+  .hdr-r .btn-icon:nth-child(3),  /* 🎭 design */
+  .hdr-r .btn-icon:nth-child(4),  /* 🎨 board */
+  .hdr-r .btn-icon:nth-child(5),  /* 📈 stats */
+  .hdr-r .btn-icon:nth-child(6) { /* ⛶ fullscreen */
+    display: none !important;
+  }
+  /* Show overflow toggle */
+  .hdr-overflow-btn { display: flex !important; }
+}
+
+.hdr-overflow-btn {
+  display: none;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text2);
+  font-size: .82rem;
+  padding: .32rem .65rem;
+  min-width: 36px;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.hdr-overflow-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* Overflow dropdown */
+.hdr-overflow-menu {
+  position: absolute;
+  top: calc(var(--hdr-h) + 4px);
+  right: .6rem;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: .4rem;
+  display: none;
+  flex-direction: column;
+  gap: .3rem;
+  z-index: 200;
+  box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  backdrop-filter: blur(16px);
+  min-width: 160px;
+  animation: slideDown .18s cubic-bezier(.16,1,.3,1) both;
+}
+.hdr-overflow-menu.is-open { display: flex; }
+.hdr-overflow-menu button {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: .82rem;
+  padding: .55rem .8rem;
+  border-radius: 8px;
+  text-align: left;
+  min-height: 44px;
+  width: 100%;
+  transition: background .15s;
+}
+.hdr-overflow-menu button:hover,
+.hdr-overflow-menu button:focus-visible {
+  background: rgba(255,255,255,.07);
+}
+
+/* ── 6. Modal scrollbar auf Mobile ──────────────────────── */
+@media (max-width: 768px) {
+  .modal-card {
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .modal-card::-webkit-scrollbar { display: none; }
+}
+
+/* ── 7. Bust-Toast mit safe-area ────────────────────────── */
+.mob-bust {
+  top: calc(var(--hdr-h, 50px) + 8px + env(safe-area-inset-top)) !important;
+}
+
+/* ── 8. Swipe-Indikator (Punkte unter Tabs) ────────────── */
+.swipe-dots {
+  display: none;
+  justify-content: center;
+  gap: 5px;
+  padding: 3px 0 4px;
+  flex-shrink: 0;
+  position: absolute;
+  bottom: calc(var(--nav-h) + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 5;
+}
+.swipe-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--border2);
+  transition: background .2s, transform .2s;
+}
+.swipe-dot.is-active {
+  background: var(--accent);
+  transform: scale(1.3);
+}
+@media (max-width: 768px) {
+  .swipe-dots { display: flex; }
+}
+
+/* ── 9. Letzter-Zug-Box: scroll-Hinweis ─────────────────── */
+#panel-right {
+  position: relative;
+}
+#panel-right::after {
+  content: '';
+  position: sticky;
+  bottom: 0;
+  left: 0; right: 0;
+  height: 20px;
+  background: linear-gradient(transparent, var(--surface));
+  pointer-events: none;
+  display: block;
+  flex-shrink: 0;
+}
+
+/* ── 10. Kontrast-Verbesserung ──────────────────────────── */
+/* WCAG AA erfordert 4.5:1 für kleinen Text.
+   --dim war zu dunkel gegen --bg. Bereits in Text-Sichtbarkeit angehoben,
+   hier zusätzliche gezielte Korrekturen: */
+.cr-marks:not(.is-closed) { color: var(--text2) !important; }
+.cr-p:not(.is-cur)         { color: var(--text2) !important; }
+.hist-pts                  { color: var(--text2) !important; }
+.uh-label                  { color: var(--text2) !important; }
+.lt-name                   { color: var(--text)  !important; font-size: .82rem !important; }
+.lt-total                  { font-size: .85rem !important; }

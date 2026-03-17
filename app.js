@@ -131,8 +131,14 @@ function toggleMute() {
   updateMuteButtons();
 }
 function updateMuteButtons() {
-  const icon = _muted ? '🔇' : '🔊';
-  ['btn-mute','hdr-mute'].forEach(id=>{ const el=$(id); if(el) el.textContent=icon; });
+  const icon  = _muted ? '🔇' : '🔊';
+  const label = _muted ? 'Ton einschalten' : 'Ton ausschalten';
+  ['btn-mute','hdr-mute'].forEach(id=>{
+    const el=$(id); if(!el) return;
+    const sp=el.querySelector('span[aria-hidden]');
+    if(sp) sp.textContent=icon; else el.textContent=icon;
+    el.setAttribute('aria-label',label);
+  });
 }
 
 /* ─────────────────────────────────────────────────
@@ -1367,7 +1373,11 @@ function isMobile(){return window.innerWidth<=768;}
 function setMobTab(tab){
   mobTab=tab;
   const layout=$('game-layout');if(layout)layout.dataset.mobTab=tab;
-  document.querySelectorAll('.mob-tab').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.tab===tab));
+  document.querySelectorAll('.mob-tab').forEach(btn=>{
+    const active=btn.dataset.tab===tab;
+    btn.classList.toggle('is-active',active);
+    btn.setAttribute('aria-selected',active?'true':'false');
+  });
   hide('undo-history-panel');
 }
 
@@ -2089,4 +2099,38 @@ function drawSetupBgBoard() {
     });
   }
 
+})();
+
+/* ═══════════════════════════════════════════════════
+   HEADER OVERFLOW MENU (mobile)
+═══════════════════════════════════════════════════ */
+function toggleHdrMenu() {
+  const menu = $('hdr-overflow-menu');
+  const btn  = $('hdr-overflow-btn');
+  if (!menu) return;
+  const open = menu.classList.toggle('is-open');
+  if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (open) {
+    // Close on outside click
+    setTimeout(() => document.addEventListener('click', closeHdrMenu, { once: true }), 0);
+  }
+}
+function closeHdrMenu() {
+  const menu = $('hdr-overflow-menu');
+  const btn  = $('hdr-overflow-btn');
+  if (menu) menu.classList.remove('is-open');
+  if (btn)  btn.setAttribute('aria-expanded', 'false');
+}
+
+/* ═══════════════════════════════════════════════════
+   SWIPE DOTS — update on tab change
+═══════════════════════════════════════════════════ */
+(function patchSetMobTabForDots() {
+  const _orig = setMobTab;
+  window.setMobTab = function(tab) {
+    _orig(tab);
+    document.querySelectorAll('.swipe-dot').forEach(dot => {
+      dot.classList.toggle('is-active', dot.dataset.tab === tab);
+    });
+  };
 })();

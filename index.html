@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<a href="#screen-setup" class="skip-link">Zum Inhalt springen</a>
 
 <!-- ════════════════ START SCREEN ════════════════════ -->
 <div id="screen-setup">
@@ -17,7 +18,7 @@
 
   <!-- Animated background dartboard (SVG) -->
   <div class="setup-bg-board" id="setup-bg-board">
-    <svg id="setup-board-svg" viewBox="0 0 460 460" xmlns="http://www.w3.org/2000/svg"></svg>
+    <svg id="setup-board-svg" viewBox="0 0 460 460" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
   </div>
 
   <div class="setup-inner">
@@ -26,7 +27,7 @@
     <div class="setup-hero">
       <div class="setup-hero-board-col">
         <div class="setup-hero-board-wrap">
-          <svg class="setup-hero-svg" id="setup-hero-svg" viewBox="0 0 460 460" xmlns="http://www.w3.org/2000/svg"></svg>
+          <svg class="setup-hero-svg" id="setup-hero-svg" viewBox="0 0 460 460" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
           <div class="setup-hero-glow"></div>
         </div>
         <button class="setup-board-style-btn" onclick="openStylePickerFromSetup()" id="setup-board-btn">
@@ -90,11 +91,11 @@
         <div class="players-list" id="players-list">
           <div class="player-row">
             <input class="player-input" type="text" placeholder="Spieler 1" value="Spieler 1">
-            <button class="btn-rm" onclick="rmPlayer(this)">✕</button>
+            <button class="btn-rm" onclick="rmPlayer(this)" aria-label="Spieler entfernen">✕</button>
           </div>
           <div class="player-row">
             <input class="player-input" type="text" placeholder="Spieler 2" value="Spieler 2">
-            <button class="btn-rm" onclick="rmPlayer(this)">✕</button>
+            <button class="btn-rm" onclick="rmPlayer(this)" aria-label="Spieler entfernen">✕</button>
           </div>
         </div>
         <button class="btn-add-player" onclick="addPlayer()">＋ Spieler hinzufügen</button>
@@ -121,7 +122,7 @@
 
 
 <!-- ════════════════ GAME SCREEN ═════════════════════ -->
-<div id="screen-game" class="hidden">
+<main id="screen-game" class="hidden" aria-label="Dart Spiel">
 
   <header class="game-header">
     <div class="hdr-l">
@@ -129,17 +130,25 @@
       <span class="round-label">Runde <span id="round-num">1</span></span>
     </div>
     <div class="hdr-active">
-      <span class="hdr-active-name"  id="hdr-active-name">—</span>
-      <span class="hdr-active-score" id="hdr-active-score"></span>
+      <span class="hdr-active-name"  id="hdr-active-name" aria-live="polite" aria-label="Aktueller Spieler">—</span>
+      <span class="hdr-active-score" id="hdr-active-score" aria-live="polite" aria-label="Punktestand"></span>
     </div>
-    <div class="hdr-r">
-      <button class="btn-icon hdr-undo"   onclick="undo()"             title="Rückgängig">↩</button>
-      <button class="btn-icon"            onclick="toggleMute()"       title="Ton an/aus" id="hdr-mute">🔊</button>
-      <button class="btn-icon"            onclick="openUiThemePicker()" title="Design">🎭</button>
-      <button class="btn-icon"            onclick="openStylePicker()"  title="Board Style">🎨</button>
-      <button class="btn-icon"            onclick="openPlayerStats()"  title="Bestenliste">📈</button>
-      <button class="btn-icon"            onclick="toggleFullscreen()" title="Vollbild" id="btn-fullscreen">⛶</button>
-      <button class="btn-icon"            onclick="goSetup()">Neu</button>
+    <div class="hdr-r" role="toolbar" aria-label="Spieloptionen">
+      <button class="btn-icon hdr-undo"   onclick="undo()"             aria-label="Wurf rückgängig"><span aria-hidden="true">↩</span></button>
+      <button class="btn-icon"            onclick="toggleMute()"       aria-label="Ton umschalten" id="hdr-mute"><span aria-hidden="true">🔊</span></button>
+      <button class="btn-icon"            onclick="openUiThemePicker()" aria-label="Design wählen"><span aria-hidden="true">🎭</span></button>
+      <button class="btn-icon"            onclick="openStylePicker()"  aria-label="Scheiben-Design wählen"><span aria-hidden="true">🎨</span></button>
+      <button class="btn-icon"            onclick="openPlayerStats()"  aria-label="Bestenliste"><span aria-hidden="true">📈</span></button>
+      <button class="btn-icon"            onclick="toggleFullscreen()" aria-label="Vollbild" id="btn-fullscreen"><span aria-hidden="true">⛶</span></button>
+      <button class="btn-icon"            onclick="goSetup()" aria-label="Neues Spiel">Neu</button>
+      <button class="hdr-overflow-btn" onclick="toggleHdrMenu()" aria-label="Weitere Optionen" aria-expanded="false" id="hdr-overflow-btn">⋯</button>
+    </div>
+    <!-- Overflow menu for small screens -->
+    <div class="hdr-overflow-menu" id="hdr-overflow-menu" role="menu" aria-label="Spieloptionen">
+      <button onclick="openUiThemePicker();closeHdrMenu()" role="menuitem"><span aria-hidden="true">🎭</span> Design</button>
+      <button onclick="openStylePicker();closeHdrMenu()"   role="menuitem"><span aria-hidden="true">🎨</span> Scheiben-Style</button>
+      <button onclick="openPlayerStats();closeHdrMenu()"   role="menuitem"><span aria-hidden="true">📈</span> Bestenliste</button>
+      <button onclick="toggleFullscreen();closeHdrMenu()"  role="menuitem"><span aria-hidden="true">⛶</span> Vollbild</button>
     </div>
   </header>
 
@@ -148,7 +157,7 @@
     <!-- LEFT: Scoreboard -->
     <aside class="side-panel" id="panel-left">
       <div class="panel-title">Punktestand</div>
-      <div id="scoreboard"></div>
+      <div id="scoreboard" aria-live="polite" aria-label="Punktestand"></div>
       <div class="panel-title" style="margin-top:.4rem">Rundenübersicht</div>
       <div class="round-table-wrap">
         <div id="round-table"></div>
@@ -176,7 +185,7 @@
 
       <!-- Dartboard -->
       <div class="board-wrap" id="board-wrap">
-        <svg id="dart-svg" viewBox="0 0 460 460" xmlns="http://www.w3.org/2000/svg"></svg>
+        <svg id="dart-svg" viewBox="0 0 460 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dartscheibe"></svg>
         <button class="btn-miss-board" onclick="doThrow(0,1)">◉ &nbsp;MISS</button>
       </div>
 
@@ -204,16 +213,16 @@
       </div>
 
       <!-- Checkout -->
-      <div class="checkout-box hidden" id="checkout-box"></div>
+      <div class="checkout-box hidden" id="checkout-box" role="status" aria-live="polite"></div>
 
       <!-- Mobile bust toast -->
-      <div class="mob-bust hidden" id="mob-bust">💥 BUST!</div>
+      <div class="mob-bust hidden" id="mob-bust" role="alert" aria-live="assertive"><span aria-hidden="true">💥</span> BUST!</div>
     </section>
 
     <!-- RIGHT: Turn info -->
     <aside class="side-panel" id="panel-right">
 
-      <div class="bust-box hidden" id="bust-box">💥 BUST!</div>
+      <div class="bust-box hidden" id="bust-box" role="alert" aria-live="assertive"><span aria-hidden="true">💥</span> BUST!</div>
 
       <div class="panel-title">Aktueller Zug</div>
       <div class="turn-player-name" id="turn-player">—</div>
@@ -254,28 +263,35 @@
     </aside>
   </div><!-- /.game-layout -->
 
+  <!-- Swipe dots indicator -->
+  <div class="swipe-dots" id="swipe-dots" aria-hidden="true">
+    <div class="swipe-dot" data-tab="score"></div>
+    <div class="swipe-dot is-active" data-tab="input"></div>
+    <div class="swipe-dot" data-tab="turn"></div>
+  </div>
+
   <!-- Mobile bottom nav -->
-  <nav class="mob-nav hidden" id="mob-nav">
-    <button class="mob-tab" data-tab="score" onclick="setMobTab('score')">
+  <nav class="mob-nav hidden" id="mob-nav" role="tablist" aria-label="Spielansichten">
+    <button class="mob-tab" role="tab" aria-selected="false" data-tab="score" onclick="setMobTab('score')">
       <span class="mob-tab-icon">📊</span>
       <span class="mob-tab-label">Punkte</span>
     </button>
-    <button class="mob-tab is-active" data-tab="input" onclick="setMobTab('input')">
+    <button class="mob-tab is-active" role="tab" aria-selected="true" data-tab="input" onclick="setMobTab('input')">
       <span class="mob-tab-icon">🎯</span>
       <span class="mob-tab-label">Wurf</span>
     </button>
-    <button class="mob-tab" data-tab="turn" onclick="setMobTab('turn')">
+    <button class="mob-tab" role="tab" aria-selected="false" data-tab="turn" onclick="setMobTab('turn')">
       <span class="mob-tab-icon">📋</span>
       <span class="mob-tab-label">Zug</span>
       <span class="mob-tab-badge hidden" id="mob-tab-badge"></span>
     </button>
   </nav>
 
-</div><!-- /#screen-game -->
+</main><!-- /#screen-game -->
 
 
 <!-- ════════════════ WINNER MODAL ════════════════════ -->
-<div class="modal-bg hidden" id="win-modal">
+<div class="modal-bg hidden" id="win-modal" role="dialog" aria-modal="true" aria-labelledby="win-name" aria-describedby="win-sub">
   <div class="modal-card">
     <div class="trophy">🏆</div>
     <div class="win-label">Gewinner</div>
