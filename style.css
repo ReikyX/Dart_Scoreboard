@@ -5,20 +5,20 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:       #070810;
-  --surface:  #0c1120;
-  --surface2: #111828;
-  --surface3: #162034;
-  --border:   #1e2d4a;
-  --border2:  #253654;
+  --bg:       #0d1128;
+  --surface:  #131d35;
+  --surface2: #192240;
+  --surface3: #1f2b4e;
+  --border:   #2a3f66;
+  --border2:  #334d78;
   --accent:   #22d3ee;
   --accent2:  #0ea5e9;
   --gold:     #f59e0b;
   --red:      #ef4444;
   --green:    #22c55e;
-  --text:     #e2eaf8;
-  --text2:    #8ba4c8;
-  --dim:      #3d5475;
+  --text:     #f0f6ff;
+  --text2:    #a8c0e0;
+  --dim:      #6888b8;
   --font:     'Share Tech Mono', 'Courier New', monospace;
   --display:  'Orbitron', 'Share Tech Mono', monospace;
   --radius:   12px;
@@ -29,7 +29,8 @@
 html { height: 100%; }
 
 body {
-  background: var(--bg);
+  background: linear-gradient(160deg, #111830 0%, #0d1228 50%, #121030 100%);
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font);
   height: 100%;
@@ -48,7 +49,7 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  background: var(--bg);
+  background: transparent;   /* body bg shows through */
   position: relative;
   overflow: hidden;
 }
@@ -58,7 +59,7 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 0;
+  z-index: 0;   /* above transparent bg, below setup-inner(z:1) */
 }
 
 /* ── Large background dartboard ─────────────────────── */
@@ -66,13 +67,13 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(700px, 110vw);
-  height: min(700px, 110vw);
+  z-index: 0;   /* same layer as canvas, below setup-inner */
+  width: min(750px, 120vw);
+  height: min(750px, 120vw);
   pointer-events: none;
-  z-index: 0;
-  opacity: .06;
-  animation: bgBoardSpin 90s linear infinite;
+  opacity: .38;
+  animation: bgBoardSpin 80s linear infinite;
+  filter: saturate(.6) brightness(1.1);
 }
 
 .setup-bg-board svg { width: 100%; height: 100%; }
@@ -107,42 +108,53 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
 }
 
 @keyframes heroEntrance {
-  from { opacity: 0; transform: translateX(-40px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; transform: translate3d(-32px,0,0); }
+  to   { opacity: 1; transform: translate3d(0,0,0); }
 }
 
 /* ── Hero dartboard (interactive mini board) ─────────── */
 .setup-hero-board-wrap {
   position: relative;
   flex-shrink: 0;
+  /* Glow on wrapper so it doesn't interfere with SVG transform */
+  animation: heroWrapGlow 4s ease-in-out infinite;
+  will-change: filter;
+}
+
+@keyframes heroWrapGlow {
+  0%,100% { filter: drop-shadow(0 0 12px rgba(34,211,238,.25)); }
+  50%     { filter: drop-shadow(0 0 28px rgba(34,211,238,.6));  }
 }
 
 .setup-hero-svg {
   width: clamp(160px, 22vw, 240px);
   height: clamp(160px, 22vw, 240px);
-  filter: drop-shadow(0 0 18px rgba(34,211,238,.25));
-  animation: heroBoardFloat 5s ease-in-out infinite;
   display: block;
+  /* Single transform-only animation: pure linear = perfectly smooth, never stutters.
+     Glow handled on wrapper to avoid filter+transform on same element (GPU conflict). */
+  animation: heroBoardFloat 5s ease-in-out infinite;
+  will-change: transform;
 }
 
 @keyframes heroBoardFloat {
-  0%,100% { transform: translateY(0) rotate(0deg); filter: drop-shadow(0 0 18px rgba(34,211,238,.25)); }
-  25%     { transform: translateY(-8px) rotate(.5deg); filter: drop-shadow(0 0 28px rgba(34,211,238,.4)); }
-  75%     { transform: translateY(4px) rotate(-.5deg); filter: drop-shadow(0 0 14px rgba(34,211,238,.2)); }
+  0%,100% { transform: translateY(0px); }
+  30%     { transform: translateY(-7px); }
+  70%     { transform: translateY(3px); }
 }
 
 .setup-hero-glow {
   position: absolute;
-  inset: -20%;
+  inset: -22%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(34,211,238,.08) 30%, transparent 70%);
+  background: radial-gradient(circle, rgba(34,211,238,.1) 25%, transparent 70%);
   pointer-events: none;
-  animation: glowPulse 3s ease-in-out infinite;
+  animation: heroGlowRing 4s linear infinite;
 }
 
-@keyframes glowPulse {
-  0%,100% { opacity: .6; transform: scale(1); }
-  50%     { opacity: 1;  transform: scale(1.12); }
+@keyframes heroGlowRing {
+  0%   { opacity: .5; transform: scale(1);    }
+  50%  { opacity: 1;  transform: scale(1.14); }
+  100% { opacity: .5; transform: scale(1);    }
 }
 
 /* ── Logo text (right of board) ─────────────────────── */
@@ -240,7 +252,7 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
 
 /* ── Config card (right side / below on mobile) ─────── */
 .setup-card {
-  background: rgba(12,17,32,.75);
+  background: rgba(12,17,32,.60);
   border: 1px solid var(--border2);
   border-radius: 20px;
   padding: 1.8rem;
@@ -280,7 +292,7 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
    ══════════════════════════════════════════════════════ */
 .setup-board-style-btn {
   position: absolute;
-  bottom: -14px;
+  bottom: -38px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -364,12 +376,12 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
   .setup-hero-svg {
     width: 110px;
     height: 110px;
-    animation: heroBoardFloat 5s ease-in-out infinite;
+    animation: heroSpin 12s linear infinite, heroGlow 4s linear infinite;
   }
 
   /* style button: sits below board, horizontally centered */
   .setup-board-style-btn {
-    bottom: -13px;
+    bottom: -34px;
     font-size: .52rem;
     padding: .25rem .6rem .25rem .35rem;
   }
@@ -656,7 +668,20 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
   height: 100%;
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
 }
+
+/* Live animated background canvas behind everything */
+#game-bg-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* All direct children of game screen above canvas */
+#screen-game > * { position: relative; z-index: 1; }
 
 /* ── Header ── */
 .game-header {
@@ -682,8 +707,16 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
   opacity: .35;
 }
 
-.hdr-l, .hdr-r { display: flex; align-items: center; gap: .6rem; min-width: 140px; }
-.hdr-r { justify-content: flex-end; }
+.hdr-l { display: flex; align-items: center; gap: .6rem; }
+.hdr-r { display: flex; align-items: center; gap: .6rem; justify-content: flex-end; }
+
+/* Center section absolutely so it stays over the dartboard column regardless of side widths */
+.hdr-active {
+  position: absolute !important;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;   /* clicks fall through to header */
+}
 
 .mode-badge {
   font-family: var(--display);
@@ -697,9 +730,9 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
   letter-spacing: .05em;
 }
 
-.round-label { font-size: .72rem; color: var(--dim); letter-spacing: .05em; }
+.round-label { font-size: .72rem; color: var(--text2); letter-spacing: .05em; }
 
-.hdr-active { display: flex; align-items: center; gap: .45rem; }
+.hdr-active { display: flex; align-items: center; gap: .45rem; pointer-events: none; }
 
 .hdr-active-name {
   font-family: var(--display);
@@ -810,7 +843,7 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
 
 .score-card.is-active .sc-val { color: var(--accent); }
 
-.sc-avg { font-size: .65rem; color: var(--dim); margin-top: .2rem; letter-spacing: .04em; }
+.sc-avg { font-size: .65rem; color: var(--text2); margin-top: .2rem; letter-spacing: .04em; }
 
 /* Cricket */
 .cricket-tbl { font-size: .8rem; width: 100%; }
@@ -845,7 +878,7 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
 .cr-marks.is-closed { color: var(--dim); opacity: .45; }
 
 /* Round table */
-.round-table-wrap { flex: 1; overflow-y: auto; min-height: 0; }
+.round-table-wrap { flex: 1; overflow-y: auto; overflow-x: hidden; min-height: 0; }
 
 .round-table { width: 100%; border-collapse: collapse; font-size: .7rem; }
 
@@ -884,7 +917,7 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
 }
 
 .round-table tr.rt-total td.rt-rd { color: var(--dim); font-weight: 400; }
-.rt-none { font-size: .7rem; color: var(--dim); font-style: italic; padding: .35rem 0; }
+.rt-none { font-size: .7rem; color: var(--text2); font-style: italic; padding: .35rem 0; }
 
 
 /* ══════════════════════════════════════════════════════
@@ -898,13 +931,7 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
   overflow-y: auto;
   position: relative;
   gap: .6rem;
-  background:
-    /* Vignette corners */
-    radial-gradient(ellipse 120% 120% at 50% 50%, transparent 55%, rgba(0,0,0,.55) 100%),
-    /* Cyan bloom behind board */
-    radial-gradient(ellipse 55% 45% at 50% 44%, rgba(34,211,238,.055) 0%, transparent 65%),
-    /* Warm deep-blue base */
-    linear-gradient(175deg, #0a0f20 0%, #070810 45%, #08060e 100%);
+  background: transparent; /* canvas handles background */
 }
 
 .input-toggle {
@@ -1037,10 +1064,10 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
 .co-dart.co-triple { border-color: var(--green); color: var(--green); background: rgba(34,197,94,.07); }
 .co-dart.co-double { border-color: var(--accent); color: var(--accent); background: rgba(34,211,238,.07); }
 .co-arrow { color: var(--dim); font-size: .7rem; }
-.co-score { font-family: var(--display); font-size: .6rem; color: var(--dim); letter-spacing: .18em; }
+.co-score { font-family: var(--display); font-size: .6rem; color: var(--text2); letter-spacing: .18em; }
 
 /* Kbd hint */
-.kbd-hint { font-size: .58rem; color: var(--dim); letter-spacing: .04em; }
+.kbd-hint { font-size: .58rem; color: var(--text2); letter-spacing: .04em; }
 .kbd { display: inline-block; background: var(--surface2); border: 1px solid var(--border); border-radius: 3px; padding: 0 .28rem; }
 
 /* Keypad */
@@ -1142,7 +1169,7 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
 .t-slot.is-empty::before { content: '○'; font-size: 1rem; color: var(--border2); }
 .t-slot.is-filled { border-color: var(--accent); color: var(--accent); background: rgba(34,211,238,.06); }
 
-.turn-summary { font-size: .7rem; color: var(--dim); text-align: center; flex-shrink: 0; letter-spacing: .03em; }
+.turn-summary { font-size: .7rem; color: var(--text2); text-align: center; flex-shrink: 0; letter-spacing: .03em; }
 
 .last-turn-box {
   background: var(--surface2);
@@ -1193,7 +1220,7 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
 .hist-tab.is-active { border-color: var(--accent); color: var(--accent); background: rgba(34,211,238,.06); }
 .hist-tab:hover { border-color: var(--border2); }
 
-.hist-list-wrap { overflow-y: auto; max-height: 110px; }
+.hist-list-wrap { overflow-y: auto; overflow-x: hidden; max-height: 110px; }
 
 .hist-entry { font-size: .68rem; color: var(--dim); padding: .2rem 0; border-bottom: 1px solid rgba(30,45,74,.35); }
 .hist-pts   { color: var(--gold); }
@@ -1276,7 +1303,7 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
 .uh-entry:last-child { border-bottom: none; }
 .uh-entry:hover { background: rgba(34,211,238,.03); }
 
-.uh-label { font-size: .68rem; color: var(--dim); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.uh-label { font-size: .68rem; color: var(--text2); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .uh-btn {
   background: transparent;
@@ -1303,8 +1330,10 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(5,7,15,.85);
-  backdrop-filter: blur(8px);
+  /* Deep glass backdrop */
+  background: rgba(4, 8, 20, 0.55);
+  backdrop-filter: blur(22px) saturate(1.5) brightness(.9);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5) brightness(.9);
   z-index: 50;
   animation: fadeInOut 2.8s ease forwards;
   pointer-events: none;
@@ -1317,43 +1346,124 @@ button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: po
   100% { opacity: 0; }
 }
 
+/* Glass card */
 .turn-end-card {
-  background: var(--surface);
-  border: 1.5px solid var(--accent);
-  border-radius: 20px;
+  /* Glassmorphism: semi-transparent with strong blur */
+  background: rgba(14, 22, 46, 0.55);
+  backdrop-filter: blur(32px) saturate(1.8);
+  -webkit-backdrop-filter: blur(32px) saturate(1.8);
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  border-radius: 24px;
   padding: 2.5rem 3.5rem;
   text-align: center;
   min-width: 320px;
+  /* Inner light line + outer glow */
   box-shadow:
-    0 0 60px rgba(34,211,238,.2),
-    0 24px 60px rgba(0,0,0,.7);
-  animation: cardPop .3s cubic-bezier(.34,1.4,.64,1) forwards;
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+    0 0 60px rgba(34, 211, 238, 0.22),
+    0 24px 60px rgba(0, 0, 0, 0.6);
+  animation: cardPopGlass .35s cubic-bezier(.16,1,.3,1) forwards;
+  position: relative;
+  overflow: hidden;
 }
 
-@keyframes cardPop {
-  0%   { transform: scale(.82); opacity: 0; }
-  100% { transform: scale(1);   opacity: 1; }
+/* Subtle shine sweep across card */
+.turn-end-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -60%;
+  width: 40%; height: 100%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    rgba(255,255,255,.06) 50%,
+    transparent
+  );
+  transform: skewX(-15deg);
+  pointer-events: none;
 }
 
-.te-name { font-family: var(--display); font-size: .72rem; letter-spacing: .4em; color: var(--dim); margin-bottom: .6rem; }
-.te-throws { display: flex; gap: .55rem; justify-content: center; margin-bottom: 1rem; flex-wrap: wrap; }
+@keyframes cardPopGlass {
+  0%   { transform: scale(.80) translateY(16px); opacity: 0; filter: blur(6px); }
+  60%  { transform: scale(1.02) translateY(-2px); opacity: 1; filter: blur(0); }
+  100% { transform: scale(1)   translateY(0);    opacity: 1; }
+}
+
+.te-name {
+  font-family: var(--display);
+  font-size: .72rem;
+  letter-spacing: .4em;
+  color: rgba(255,255,255,.5);
+  margin-bottom: .6rem;
+}
+
+.te-throws {
+  display: flex;
+  gap: .55rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
 
 .te-throw {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 9px;
+  /* Glass throw chips */
+  background: rgba(34, 211, 238, 0.08);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  border-radius: 10px;
   font-family: var(--display);
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--accent);
   padding: .5rem .85rem;
   min-width: 3.2rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1);
 }
 
-.te-total { font-family: var(--display); font-size: 3rem; font-weight: 900; color: var(--gold); line-height: 1; }
-.te-total-label { font-size: .65rem; color: var(--dim); letter-spacing: .22em; margin-top: .35rem; }
-.turn-end-card.is-bust { border-color: var(--red); }
-.turn-end-card.is-bust .te-total { color: var(--red); }
+.te-total {
+  font-family: var(--display);
+  font-size: 3rem;
+  font-weight: 900;
+  color: var(--gold);
+  line-height: 1;
+  text-shadow: 0 0 24px rgba(245,158,11,.5);
+}
+
+.te-total-label {
+  font-size: .65rem;
+  color: rgba(255,255,255,.35);
+  letter-spacing: .22em;
+  margin-top: .35rem;
+}
+
+/* Bust: red glass tint */
+.turn-end-card.is-bust {
+  background: rgba(40, 8, 10, 0.6) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,100,100,.12),
+    0 0 50px rgba(239, 68, 68, 0.3),
+    0 24px 60px rgba(0,0,0,.6) !important;
+}
+.turn-end-card.is-bust .te-total {
+  color: var(--red);
+  text-shadow: 0 0 20px rgba(239,68,68,.5);
+}
+.turn-end-card.is-bust .te-throw {
+  background: rgba(239,68,68,.08) !important;
+  border-color: rgba(239,68,68,.3) !important;
+  color: var(--red) !important;
+}
+
+/* "Next player" hint */
+.te-next {
+  font-size: .62rem;
+  letter-spacing: .18em;
+  color: rgba(34,211,238,.6);
+  margin-top: .55rem;
+  font-family: var(--display);
+}
 
 
 /* ══════════════════════════════════════════════════════
@@ -2289,9 +2399,9 @@ body[data-ui-theme="nacht"] {
   --gold:     #e0a030;
   --red:      #ff4060;
   --green:    #40e090;
-  --text:     #e0d4f8;
-  --text2:    #9070c8;
-  --dim:      #4a2880;
+  --text:     #f0eaff;
+  --text2:    #b898e8;
+  --dim:      #7050a8;
 }
 
 body[data-ui-theme="nacht"] #screen-setup {
@@ -2335,9 +2445,9 @@ body[data-ui-theme="inferno"] {
   --gold:     #ffcc00;
   --red:      #ff2020;
   --green:    #80e020;
-  --text:     #ffd8b0;
-  --text2:    #c07040;
-  --dim:      #602800;
+  --text:     #ffe8c8;
+  --text2:    #d89060;
+  --dim:      #904800;
 }
 
 body[data-ui-theme="inferno"] #screen-setup {
@@ -2384,9 +2494,9 @@ body[data-ui-theme="forest"] {
   --gold:     #d4b840;
   --red:      #e04040;
   --green:    #80f060;
-  --text:     #c8e8c0;
-  --text2:    #6aaa60;
-  --dim:      #2a5028;
+  --text:     #daf4d0;
+  --text2:    #90d080;
+  --dim:      #487840;
 }
 
 body[data-ui-theme="forest"] #screen-setup {
@@ -2426,9 +2536,9 @@ body[data-ui-theme="arctic"] {
   --gold:     #e8d080;
   --red:      #ff6060;
   --green:    #60e8c0;
-  --text:     #daf0ff;
-  --text2:    #80b4d4;
-  --dim:      #304860;
+  --text:     #eef8ff;
+  --text2:    #a0ccee;
+  --dim:      #508898;
 }
 
 body[data-ui-theme="arctic"] #screen-setup {
@@ -2460,9 +2570,9 @@ body[data-ui-theme="retro"] {
   --gold:     #ffd040;
   --red:      #ff4000;
   --green:    #a0e000;
-  --text:     #ffe880;
-  --text2:    #c08000;
-  --dim:      #604800;
+  --text:     #fff4a0;
+  --text2:    #e0a828;
+  --dim:      #906818;
   --font:     'Share Tech Mono', 'Courier New', monospace;
   --display:  'Share Tech Mono', 'Courier New', monospace;
 }
@@ -2520,8 +2630,8 @@ body[data-ui-theme="luxe"] {
   --gold:     #f0c040;
   --red:      #c04040;
   --green:    #60a840;
-  --text:     #f0e8c8;
-  --text2:    #a08840;
+  --text:     #fdf4d8;
+  --text2:    #c8a858;
   --dim:      #503810;
 }
 
@@ -2555,9 +2665,9 @@ body[data-ui-theme="sakura"] {
   --gold:     #e8c060;
   --red:      #ff4060;
   --green:    #60d098;
-  --text:     #f8d8e8;
-  --text2:    #c070a0;
-  --dim:      #602850;
+  --text:     #ffe8f4;
+  --text2:    #e090c0;
+  --dim:      #905878;
 }
 
 body[data-ui-theme="sakura"] #screen-setup {
@@ -2602,9 +2712,9 @@ body[data-ui-theme="matrix"] {
   --gold:     #80ff00;
   --red:      #ff2020;
   --green:    #00ff80;
-  --text:     #b0ffb0;
-  --text2:    #40a840;
-  --dim:      #005a00;
+  --text:     #d0ffd0;
+  --text2:    #70e070;
+  --dim:      #20a020;
   --font:     'Share Tech Mono', 'Courier New', monospace;
   --display:  'Share Tech Mono', 'Courier New', monospace;
 }
@@ -2645,9 +2755,9 @@ body[data-ui-theme="sunset"] {
   --gold:     #ff9020;
   --red:      #ff3060;
   --green:    #40e0a0;
-  --text:     #f0d0ff;
-  --text2:    #a060d0;
-  --dim:      #502870;
+  --text:     #fce8ff;
+  --text2:    #c888e8;
+  --dim:      #8050a8;
 }
 
 body[data-ui-theme="sunset"] #screen-setup {
@@ -2682,118 +2792,10 @@ body[data-ui-theme="sunset"] .game-header::before { background: linear-gradient(
 }
 
 /* ════════════════════════════════════════════════════════
-   UI THEME PICKER
+   UI THEME PICKER  –  v2 (Immersive Fullscreen)
    ════════════════════════════════════════════════════════ */
-.ui-theme-picker-bg {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 400;
-  backdrop-filter: blur(8px);
-  opacity: 0;
-  transition: opacity .2s;
-}
-.ui-theme-picker-bg.is-open { opacity: 1; }
-.ui-theme-picker-bg.hidden  { display: none !important; }
 
-.ui-theme-card {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-radius: 18px;
-  padding: 1.5rem;
-  width: min(640px, 96vw);
-  max-height: 88vh;
-  overflow-y: auto;
-  box-shadow: 0 24px 60px rgba(0,0,0,.7);
-}
-
-.ui-theme-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.2rem;
-}
-
-.ui-theme-title {
-  font-family: var(--display);
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .3em;
-  color: var(--accent);
-}
-
-.ui-theme-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: .6rem;
-}
-
-.ui-theme-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: .4rem;
-  cursor: pointer;
-  border-radius: 10px;
-  padding: .5rem .3rem;
-  border: 2px solid transparent;
-  transition: border-color .15s, background .15s;
-}
-
-.ui-theme-item:hover { background: rgba(255,255,255,.04); }
-.ui-theme-item.is-active { border-color: var(--accent); }
-
-.ui-theme-swatch {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  position: relative;
-  overflow: hidden;
-  border: 2px solid rgba(255,255,255,.12);
-  flex-shrink: 0;
-}
-
-.ui-theme-swatch-inner {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-}
-
-.ui-theme-name {
-  font-family: var(--display);
-  font-size: .55rem;
-  letter-spacing: .08em;
-  color: var(--text2);
-  text-align: center;
-  line-height: 1.3;
-}
-
-.ui-theme-item.is-active .ui-theme-name { color: var(--accent); }
-
-.ui-theme-item.is-active .ui-theme-swatch::after {
-  content: '✓';
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: .9rem;
-  color: #fff;
-  background: rgba(0,0,0,.45);
-}
-
-/* Effect preview badge */
-.ui-theme-badge {
-  font-size: .5rem;
-  letter-spacing: .06em;
-  color: var(--dim);
-  text-align: center;
-}
-
-/* Active theme indicator in header/setup */
+/* Active theme indicator button */
 .ui-theme-btn {
   background: var(--surface2);
   border: 1px solid var(--border);
@@ -2805,16 +2807,6 @@ body[data-ui-theme="sunset"] .game-header::before { background: linear-gradient(
   cursor: pointer;
 }
 .ui-theme-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-/* Matrix canvas behind content */
-body[data-ui-theme="matrix"] .setup-inner,
-body[data-ui-theme="matrix"] .game-layout,
-body[data-ui-theme="matrix"] .game-header { position: relative; z-index: 1; }
-
-@media (max-width: 768px) {
-  .ui-theme-grid { grid-template-columns: repeat(4, 1fr); gap: .45rem; }
-  .ui-theme-swatch { width: 36px; height: 36px; }
-}
 
 /* Setup theme row */
 .setup-theme-row {
@@ -2832,4 +2824,2206 @@ body[data-ui-theme="matrix"] .game-header { position: relative; z-index: 1; }
   letter-spacing: .2em;
   color: var(--dim);
   text-transform: uppercase;
+}
+
+/* ── Fullscreen Picker Overlay ────────────────────── */
+#tp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+  display: flex;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .35s ease;
+}
+#tp-overlay.is-open {
+  opacity: 1;
+  pointer-events: all;
+}
+#tp-overlay.hidden { display: none !important; }
+
+/* Blur backdrop */
+#tp-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.82);
+  backdrop-filter: blur(16px);
+  z-index: 0;
+}
+
+/* ── LEFT: theme list ─────────────────────────────── */
+#tp-list {
+  position: relative;
+  z-index: 1;
+  width: 340px;
+  flex-shrink: 0;
+  background: rgba(8,12,24,.9);
+  border-right: 1px solid rgba(255,255,255,.07);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-30px);
+  transition: transform .4s cubic-bezier(.16,1,.3,1);
+}
+#tp-overlay.is-open #tp-list { transform: translateX(0); }
+
+#tp-list-header {
+  padding: 1.4rem 1.4rem 1rem;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+#tp-list-title {
+  font-family: var(--display);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .35em;
+  color: #fff;
+}
+
+#tp-close {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 8px;
+  color: rgba(255,255,255,.5);
+  font-size: .9rem;
+  padding: .3rem .65rem;
+  cursor: pointer;
+  transition: .15s;
+}
+#tp-close:hover { background: rgba(255,255,255,.12); color: #fff; }
+
+#tp-items {
+  flex: 1;
+  overflow-y: auto;
+  padding: .7rem .8rem;
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.1) transparent;
+}
+
+.tp-item {
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  padding: .75rem 1rem;
+  border-radius: 12px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, transform .12s;
+  position: relative;
+  overflow: hidden;
+}
+
+.tp-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity .2s;
+}
+
+.tp-item:hover { transform: translate3d(3px,0,0); }
+.tp-item:hover::before { opacity: 1; }
+.tp-item.is-hovered { background: rgba(255,255,255,.04); }
+.tp-item.is-active { border-color: rgba(255,255,255,.25); }
+
+/* Color swatch dot */
+.tp-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgba(255,255,255,.15);
+  transition: transform .2s, box-shadow .2s;
+}
+.tp-item:hover .tp-dot,
+.tp-item.is-active .tp-dot {
+  transform: scale(1.1);
+}
+
+.tp-dot-ring {
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  transition: border-color .2s;
+}
+.tp-item.is-active .tp-dot-ring { border-color: rgba(255,255,255,.6); }
+
+/* Text */
+.tp-text { flex: 1; min-width: 0; }
+.tp-name {
+  font-family: var(--display);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: .15rem;
+}
+.tp-desc {
+  font-size: .6rem;
+  letter-spacing: .04em;
+  opacity: .55;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* FX badges */
+.tp-fx {
+  display: flex;
+  gap: .3rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+.tp-fx-tag {
+  font-size: .48rem;
+  letter-spacing: .08em;
+  padding: .15rem .4rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,.18);
+  color: rgba(255,255,255,.55);
+  background: rgba(255,255,255,.05);
+  white-space: nowrap;
+}
+
+/* Active checkmark */
+.tp-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .6rem;
+  flex-shrink: 0;
+  color: rgba(255,255,255,.4);
+  border: 1.5px solid rgba(255,255,255,.15);
+  transition: background .2s, border-color .2s, color .2s;
+}
+.tp-item.is-active .tp-check {
+  background: rgba(255,255,255,.9);
+  border-color: rgba(255,255,255,.9);
+  color: #000;
+}
+
+/* ── RIGHT: Live preview panel ─────────────────────── */
+#tp-preview {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateX(30px);
+  transition: transform .4s cubic-bezier(.16,1,.3,1);
+}
+#tp-overlay.is-open #tp-preview { transform: translateX(0); }
+
+/* Preview label bar */
+#tp-preview-label {
+  position: absolute;
+  top: 1.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .3rem;
+  pointer-events: none;
+  transition: opacity .2s;
+}
+#tp-preview-name {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: .25em;
+  text-shadow: 0 2px 12px rgba(0,0,0,.6);
+}
+#tp-preview-desc {
+  font-size: .62rem;
+  letter-spacing: .15em;
+  opacity: .7;
+}
+
+/* Apply button */
+#tp-apply-btn {
+  position: absolute;
+  bottom: 1.8rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  padding: .8rem 2.5rem;
+  border: none;
+  border-radius: 50px;
+  font-family: var(--display);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .25em;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s, opacity .2s;
+  white-space: nowrap;
+}
+#tp-apply-btn:hover { transform: translateX(-50%) scale(1.05); }
+#tp-apply-btn:active { transform: translateX(-50%) scale(.97); }
+#tp-apply-btn.is-applied {
+  background: rgba(255,255,255,.15) !important;
+  color: rgba(255,255,255,.6) !important;
+  box-shadow: none !important;
+}
+
+/* The mock UI inside preview */
+#tp-mock {
+  position: absolute;
+  inset: 60px 2rem 80px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.06);
+  transition: background .3s;
+  display: flex;
+  flex-direction: column;
+}
+
+#tp-mock-hdr {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  transition: background .3s, border-color .3s;
+}
+
+.tp-mock-badge {
+  height: 20px;
+  border-radius: 5px;
+  padding: 0 .6rem;
+  display: flex;
+  align-items: center;
+  font-family: var(--display);
+  font-size: .5rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  transition: background .3s, color .3s;
+}
+
+.tp-mock-dots {
+  display: flex;
+  gap: .3rem;
+}
+.tp-mock-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  transition: background .3s;
+}
+
+#tp-mock-body {
+  flex: 1;
+  display: flex;
+  gap: 0;
+  min-height: 0;
+  transition: background .3s;
+}
+
+.tp-mock-panel {
+  width: 80px;
+  flex-shrink: 0;
+  padding: .6rem .5rem;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  border-right: 1px solid rgba(255,255,255,.06);
+  transition: background .3s, border-color .3s;
+}
+.tp-mock-panel:last-child { border-right: none; border-left: 1px solid rgba(255,255,255,.06); }
+
+.tp-mock-card {
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,.08);
+  transition: background .3s, border-color .3s;
+}
+.tp-mock-card.is-active {
+  border-width: 1.5px;
+}
+
+.tp-mock-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background .3s;
+}
+
+#tp-mock-board {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  transition: box-shadow .3s;
+}
+
+.tp-mock-btn {
+  position: absolute;
+  bottom: .6rem;
+  height: 22px;
+  border-radius: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70%;
+  transition: background .3s;
+}
+
+/* Effect overlays in preview */
+#tp-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg,rgba(0,0,0,.07) 0px,rgba(0,0,0,.07) 1px,transparent 1px,transparent 3px);
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0;
+  border-radius: 16px;
+  transition: opacity .3s;
+}
+#tp-scanlines.visible { opacity: 1; }
+
+#tp-particles-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  border-radius: 16px;
+}
+
+/* Matrix overlay in preview */
+#tp-matrix-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity .3s;
+  border-radius: 16px;
+  overflow: hidden;
+}
+#tp-matrix-overlay.visible { opacity: 1; }
+
+/* ── Responsive ─────────────────────────────────── */
+@media (max-width: 900px) {
+  #tp-list { width: 100%; border-right: none; border-bottom: 1px solid rgba(255,255,255,.07); max-height: 45vh; }
+  #tp-overlay { flex-direction: column; }
+  #tp-preview { transform: translateY(20px); }
+  #tp-overlay.is-open #tp-preview { transform: translateY(0); }
+  #tp-mock { inset: 40px 1rem 70px; }
+}
+
+/* Matrix canvas behind game content */
+body[data-ui-theme="matrix"] .setup-inner,
+body[data-ui-theme="matrix"] .game-layout,
+body[data-ui-theme="matrix"] .game-header { position: relative; z-index: 1; }
+
+/* ════════════════════════════════════════════════════════
+   GLASSMORPHISM · HOVER EFFECTS · ANIMATIONS  –  v3
+   Appended — overrides previous declarations where needed
+   ════════════════════════════════════════════════════════ */
+
+/* ── 0. CSS custom properties for glass ─────────────────── */
+:root {
+  --glass-bg:      rgba(22, 34, 62, 0.62);
+  --glass-bg2:     rgba(18, 28, 54, 0.78);
+  --glass-border:  rgba(255, 255, 255, 0.11);
+  --glass-border2: rgba(255, 255, 255, 0.18);
+  --glass-blur:    16px;
+  --glass-blur2:   24px;
+  --glow-sm:       0 0 16px var(--accent-glow, rgba(34,211,238,.2));
+  --glow-md:       0 0 30px var(--accent-glow, rgba(34,211,238,.35));
+  --trans-smooth:  all .22s cubic-bezier(.4,0,.2,1);
+}
+
+/* ══════════════════════════════════════════════════════════
+   1. GLASSMORPHISM PANELS
+   ══════════════════════════════════════════════════════════ */
+
+/* Game header — full glass */
+.game-header {
+  background: var(--glass-bg2) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.6) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.6) !important;
+  border-bottom: 1px solid var(--glass-border2) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.04), 0 4px 20px rgba(0,0,0,.4) !important;
+}
+
+/* Side panels — subtle glass */
+.side-panel {
+  background: rgba(16, 24, 52, 0.72) !important;
+  backdrop-filter: blur(14px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.4) !important;
+}
+
+/* Score cards — glass with inner shine */
+.score-card {
+  background: rgba(24,34,62,.7) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid var(--glass-border2) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 4px 16px rgba(0,0,0,.3) !important;
+  transition: var(--trans-smooth), box-shadow .3s !important;
+}
+
+.score-card:not(.is-active):hover {
+  background: rgba(30,44,76,.8) !important;
+  border-color: rgba(255,255,255,.14) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 6px 24px rgba(0,0,0,.4) !important;
+  transform: translate3d(0,-1px,0);
+}
+
+.score-card.is-active {
+  background: rgba(34,211,238,.06) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1px var(--accent), 0 0 24px rgba(34,211,238,.2), inset 0 1px 0 rgba(34,211,238,.1) !important;
+}
+
+/* Checkout box — glassy + glowing border */
+.checkout-box {
+  background: rgba(34,211,238,.04) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(34,211,238,.3) !important;
+  box-shadow: 0 0 20px rgba(34,211,238,.1), inset 0 1px 0 rgba(34,211,238,.1) !important;
+}
+
+/* Throw slots — glass + glow on fill */
+.t-slot {
+  background: rgba(18,26,50,.65) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1.5px solid rgba(255,255,255,.06) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04) !important;
+  transition: var(--trans-smooth) !important;
+}
+.t-slot.is-filled {
+  background: rgba(34,211,238,.08) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 14px rgba(34,211,238,.2), inset 0 1px 0 rgba(34,211,238,.15) !important;
+}
+
+/* Last turn box */
+.last-turn-box {
+  backdrop-filter: blur(10px) !important;
+  background: rgba(12,18,34,.6) !important;
+  border: 1px solid var(--glass-border2) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.04) inset !important;
+}
+
+/* Mode cards on setup — glass */
+.mode-card {
+  background: rgba(22,32,58,.65) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1.5px solid var(--glass-border) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05) !important;
+  transition: var(--trans-smooth) !important;
+}
+.mode-card:hover {
+  border-color: rgba(255,255,255,.15) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
+.mode-card:has(input:checked) {
+  background: rgba(34,211,238,.07) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 20px rgba(34,211,238,.18), inset 0 1px 0 rgba(34,211,238,.12) !important;
+  transform: none !important;
+}
+
+/* Modal cards */
+.modal-card {
+  backdrop-filter: blur(var(--glass-blur2)) !important;
+  background: rgba(16,24,48,.88) !important;
+  border: 1px solid var(--glass-border2) !important;
+  box-shadow: 0 24px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.04), inset 0 1px 0 rgba(255,255,255,.06) !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   2. BUTTON HOVER EFFECTS
+   ══════════════════════════════════════════════════════════ */
+
+/* Header icon buttons — lift + glow */
+.btn-icon {
+  background: rgba(16,24,42,.6) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255,255,255,.07) !important;
+  transition: var(--trans-smooth) !important;
+  position: relative;
+  overflow: hidden;
+}
+.btn-icon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255,255,255,.12), transparent 70%);
+  opacity: 0;
+  transition: opacity .2s;
+  pointer-events: none;
+}
+.btn-icon:hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 14px rgba(34,211,238,.25) !important;
+}
+.btn-icon:hover::after { opacity: 1; }
+.btn-icon:active { transform: translateY(0) !important; }
+
+/* Start button — shimmer sweep on hover */
+.btn-start {
+  position: relative;
+  overflow: hidden;
+  transition: var(--trans-smooth), box-shadow .25s !important;
+}
+.btn-start::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+  transform: skewX(-20deg);
+  transition: left .5s ease;
+  pointer-events: none;
+}
+.btn-start:hover::before { left: 160%; }
+.btn-start:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 12px 36px rgba(34,211,238,.5), 0 0 0 1px rgba(34,211,238,.3) !important;
+}
+.btn-start:active { transform: translateY(-1px) !important; }
+
+/* Keypad number buttons — glass + ripple-glow */
+.n-btn {
+  background: rgba(22,32,56,.65) !important;
+  backdrop-filter: blur(6px) !important;
+  border: 1px solid rgba(255,255,255,.06) !important;
+  transition: var(--trans-smooth) !important;
+  position: relative;
+  overflow: hidden;
+}
+.n-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(34,211,238,.18), transparent 70%);
+  opacity: 0;
+  transition: opacity .15s;
+  pointer-events: none;
+}
+.n-btn:hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  transform: translateY(-2px) scale(1.04) !important;
+  box-shadow: 0 4px 14px rgba(34,211,238,.2) !important;
+}
+.n-btn:hover::after { opacity: 1; }
+.n-btn:active { transform: scale(.96) !important; }
+
+/* Multiplier buttons */
+.mult-btn {
+  background: rgba(14,20,36,.5) !important;
+  backdrop-filter: blur(6px) !important;
+  transition: var(--trans-smooth) !important;
+}
+.mult-btn:not(.is-on):hover {
+  border-color: rgba(255,255,255,.2) !important;
+  transform: translateY(-1px) !important;
+}
+.mult-btn.is-on {
+  box-shadow: 0 0 12px rgba(34,211,238,.2) inset !important;
+}
+
+/* Miss board button */
+.btn-miss-board {
+  backdrop-filter: blur(8px) !important;
+  transition: var(--trans-smooth) !important;
+}
+.btn-miss-board:hover {
+  border-color: rgba(239,68,68,.6) !important;
+  color: var(--red) !important;
+  background: rgba(239,68,68,.08) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 16px rgba(239,68,68,.2) !important;
+}
+
+/* Undo / control buttons */
+.btn-ctrl {
+  backdrop-filter: blur(8px) !important;
+  transition: var(--trans-smooth) !important;
+}
+.btn-ctrl:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,.35) !important;
+}
+
+/* Input toggle buttons */
+.tog-btn { transition: var(--trans-smooth) !important; }
+.tog-btn:not(.is-on):hover {
+  color: var(--text) !important;
+  background: rgba(255,255,255,.05) !important;
+}
+.tog-btn.is-on {
+  box-shadow: 0 0 14px rgba(34,211,238,.25), inset 0 1px 0 rgba(255,255,255,.15) !important;
+}
+
+/* Player input fields */
+.player-input {
+  background: rgba(10,14,26,.65) !important;
+  backdrop-filter: blur(8px) !important;
+  transition: var(--trans-smooth) !important;
+}
+.player-input:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(34,211,238,.12), 0 0 16px rgba(34,211,238,.1) !important;
+}
+
+/* Round table rows */
+.round-table tr:hover td {
+  background: rgba(34,211,238,.04) !important;
+}
+.round-table td.rt-best {
+  text-shadow: 0 0 8px rgba(245,158,11,.35);
+}
+
+/* Hist tabs */
+.hist-tab {
+  transition: var(--trans-smooth) !important;
+}
+.hist-tab:not(.is-active):hover {
+  border-color: rgba(255,255,255,.15) !important;
+  color: var(--text) !important;
+  transform: translateY(-1px) !important;
+}
+.hist-tab.is-active {
+  box-shadow: 0 0 10px rgba(34,211,238,.2) !important;
+}
+
+/* Board style picker items */
+.sp-item {
+  transition: var(--trans-smooth) !important;
+}
+.sp-item:not(.is-active):hover {
+  transform: translateY(-3px) scale(1.03) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.5) !important;
+  border-color: rgba(255,255,255,.15) !important;
+}
+.sp-item.is-active {
+  box-shadow: 0 0 18px rgba(34,211,238,.3) !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   3. ANIMATIONS — entrance, transitions, feedback
+   ══════════════════════════════════════════════════════════ */
+
+/* Screen switch entrance */
+#screen-game:not(.hidden) {
+  animation: screenFadeIn .35s ease both;
+}
+@keyframes screenFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Score value change — bounce */
+.sc-val {
+  transition: color .2s !important;
+  display: inline-block;
+}
+.sc-val.is-changed {
+  animation: scoreUpdate .35s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes scoreUpdate {
+  0%   { transform: scale3d(1,1,1);    }
+  30%  { transform: scale3d(1.16,1.16,1); }
+  100% { transform: scale3d(1,1,1);    }
+}
+
+/* Throw slot fill — bounce-in */
+.t-slot.is-filled {
+  animation: slotFill .25s cubic-bezier(.34,1.4,.64,1) !important;
+}
+@keyframes slotFill {
+  from { transform: scale(.7); opacity: .4; }
+  to   { transform: scale(1);  opacity: 1; }
+}
+
+/* Bust box — shake */
+.bust-box {
+  animation: bustShake .4s ease-out !important;
+  box-shadow: 0 0 24px rgba(239,68,68,.4), inset 0 1px 0 rgba(239,68,68,.2) !important;
+}
+@keyframes bustShake {
+  0%,100% { transform: translate3d(0,0,0); }
+  15%     { transform: translate3d(-6px,0,0); }
+  30%     { transform: translate3d( 6px,0,0); }
+  45%     { transform: translate3d(-4px,0,0); }
+  60%     { transform: translate3d( 4px,0,0); }
+  75%     { transform: translate3d(-2px,0,0); }
+  90%     { transform: translate3d( 2px,0,0); }
+}
+
+/* 180 score — rainbow flash on hist badge */
+.hist-badge-180 {
+  animation: badge180 .6s ease both;
+}
+@keyframes badge180 {
+  0%   { transform: scale(.5) rotate(-10deg); opacity: 0; }
+  60%  { transform: scale(1.2) rotate(4deg);  opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+/* Panel title — subtle shimmer sweep (once on load) */
+.panel-title {
+  background: linear-gradient(90deg, var(--text2) 0%, rgba(240,246,255,.75) 50%, var(--text2) 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: panelShimmer 5s linear infinite;
+}
+@keyframes panelShimmer {
+  from { background-position: 200% center; }
+  to   { background-position: -200% center; }
+}
+
+/* Checkout box entrance */
+.checkout-box {
+  animation: coEntrance .3s cubic-bezier(.34,1.4,.64,1) !important;
+}
+@keyframes coEntrance {
+  from { transform: scale(.92) translateY(6px); opacity: 0; }
+  to   { transform: scale(1)   translateY(0);   opacity: 1; }
+}
+
+/* Turn end overlay card */
+.turn-end-card {
+  animation: overlayPop .3s cubic-bezier(.34,1.3,.64,1) !important;
+}
+@keyframes overlayPop {
+  from { transform: scale(.88) translateY(-12px); opacity: 0; }
+  to   { transform: scale(1)   translateY(0);      opacity: 1; }
+}
+
+/* Scoreboard card entrance on render */
+.score-card {
+  animation: cardIn .3s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translate3d(-6px,0,0); }
+  to   { opacity: 1; transform: translate3d(0,0,0); }
+}
+
+/* Mode badge pulse when active */
+.mode-badge {
+  animation: badgePulse 4s ease-in-out infinite;
+}
+@keyframes badgePulse {
+  0%,100% { box-shadow: 0 0 6px rgba(34,211,238,.15); }
+  50%     { box-shadow: 0 0 16px rgba(34,211,238,.4); }
+}
+
+/* ── Ripple on button click ─────────────────────────────── */
+.btn-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,.18);
+  transform: scale(0);
+  animation: ripple .5s linear;
+  pointer-events: none;
+}
+@keyframes ripple {
+  to { transform: scale(4); opacity: 0; }
+}
+
+/* ── Header accent line animated shimmer ────────────────── */
+.game-header::before {
+  background: linear-gradient(90deg, transparent 0%, var(--accent) 40%, rgba(255,255,255,.4) 50%, var(--accent) 60%, transparent 100%) !important;
+  background-size: 200% auto !important;
+  animation: hdrShimmer 4s linear infinite !important;
+  opacity: .4 !important;
+}
+@keyframes hdrShimmer {
+  from { background-position: 200% center; }
+  to   { background-position: -200% center; }
+}
+
+/* ── Board glow breathe ─────────────────────────────────── */
+.board-wrap::before {
+  animation: boardGlowBreathe 4s ease-in-out infinite !important;
+}
+@keyframes boardGlowBreathe {
+  0%,100% { opacity: .7;  transform: translate(-50%,-50%) scale(1); }
+  50%     { opacity: 1;   transform: translate(-50%,-50%) scale(1.1); }
+}
+
+/* ── Active score number — counting flash ───────────────── */
+.hdr-active-score {
+  transition: color .2s, text-shadow .2s !important;
+}
+
+/* ── Player name change transition ──────────────────────── */
+.hdr-active-name {
+  transition: opacity .18s, transform .18s !important;
+}
+.hdr-active-name.is-changing {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+/* ── Turn panel player name slide ───────────────────────── */
+.turn-player-name {
+  transition: opacity .2s, transform .2s !important;
+}
+
+/* ── Mob score strip pills ──────────────────────────────── */
+.mob-score-pill {
+  background: rgba(12,18,34,.65) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255,255,255,.07) !important;
+  transition: var(--trans-smooth) !important;
+}
+.mob-score-pill.is-active {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 12px rgba(34,211,238,.2) !important;
+  background: rgba(34,211,238,.07) !important;
+}
+
+/* ── Hist entry hover ────────────────────────────────────── */
+.hist-entry {
+  color: var(--text);
+  transition: background .15s, padding-left .15s;
+  border-radius: 6px;
+  padding: .15rem .35rem;
+}
+.hist-entry:hover {
+  background: rgba(255,255,255,.04);
+}
+
+/* ── Score card value animate on change (JS adds class) ─── */
+@keyframes pop {
+  0%   { transform: scale(.85); opacity: .5; }
+  60%  { transform: scale(1.06); }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
+/* ── Win modal entrance ─────────────────────────────────── */
+.modal-card {
+  animation: winEntrance .5s cubic-bezier(.16,1,.3,1) both !important;
+}
+@keyframes winEntrance {
+  from { opacity: 0; transform: scale(.88) translateY(20px); }
+  to   { opacity: 1; transform: scale(1)   translateY(0); }
+}
+
+/* Trophy bounce */
+.trophy {
+  animation: trophyBounce 1s cubic-bezier(.34,1.56,.64,1) .2s both,
+             trophyFloat 3s ease-in-out 1.2s infinite !important;
+  display: inline-block;
+}
+@keyframes trophyBounce {
+  from { opacity: 0; transform: translateY(-30px) scale(.5); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes trophyFloat {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-6px); }
+}
+
+/* Win name reveal */
+.win-name {
+  animation: winNameIn .45s cubic-bezier(.16,1,.3,1) .4s both !important;
+}
+@keyframes winNameIn {
+  from { opacity: 0; letter-spacing: .8em; }
+  to   { opacity: 1; letter-spacing: .2em; }
+}
+
+/* Win stats stagger */
+.ws-row {
+  animation: wsRowIn .3s ease both;
+  transition: var(--trans-smooth) !important;
+}
+.ws-row:nth-child(1) { animation-delay: .5s; }
+.ws-row:nth-child(2) { animation-delay: .6s; }
+.ws-row:nth-child(3) { animation-delay: .7s; }
+.ws-row:nth-child(4) { animation-delay: .8s; }
+@keyframes wsRowIn {
+  from { opacity: 0; transform: translate3d(-10px,0,0); }
+  to   { opacity: 1; transform: translate3d(0,0,0); }
+}
+.ws-row:hover {
+  background: rgba(255,255,255,.04) !important;
+  transform: translateX(3px);
+}
+
+/* setup-hero-glow animation defined in hero section above */
+
+/* ── Dart-streak now also appears in-game ───────────────── */
+@keyframes dartFly {
+  0%   { opacity: 0; clip-path: inset(0 100% 0 0); }
+  10%  { opacity: 1; }
+  100% { opacity: 0; clip-path: inset(0 0% 0 0); }
+}
+
+/* ── Mobile nav tab active indicator ───────────────────── */
+.mob-tab {
+  transition: var(--trans-smooth) !important;
+}
+.mob-tab.is-active {
+  box-shadow: 0 -2px 0 var(--accent) inset !important;
+}
+.mob-tab:not(.is-active):hover {
+  background: rgba(255,255,255,.04) !important;
+}
+
+/* ════════════════════════════════════════════════════════
+   WEITERE ANIMATIONEN  –  v4
+   ════════════════════════════════════════════════════════ */
+
+/* ── 1. Dartscheibe im Spiel: sanfte Glow-Pulsation ─────── */
+#dart-svg {
+  animation: ingameBoardGlow 5s ease-in-out infinite !important;
+  will-change: filter;
+}
+@keyframes ingameBoardGlow {
+  0%,100% {
+    filter: drop-shadow(0 0 16px rgba(0,0,0,.95))
+            drop-shadow(0 6px 14px rgba(0,0,0,.8));
+  }
+  50% {
+    filter: drop-shadow(0 0 22px rgba(0,0,0,.95))
+            drop-shadow(0 6px 14px rgba(0,0,0,.8))
+            drop-shadow(0 0 36px rgba(34,211,238,.12));
+  }
+}
+
+/* ── 2. Hover auf Dartscheiben-Segment: leuchtender Ring ─── */
+.board-seg:hover {
+  filter: brightness(1.7) saturate(1.3) drop-shadow(0 0 6px rgba(34,211,238,.6)) !important;
+  transition: filter .08s !important;
+}
+
+/* ── 3. Score-Karte: aktiver Spieler — stärkerer Glow ────── */
+.score-card.is-active {
+  animation: activeCardPulse 2.5s ease-in-out infinite !important;
+}
+@keyframes activeCardPulse {
+  0%,100% {
+    box-shadow: 0 0 10px rgba(34,211,238,.15),
+                inset 0 0 0 rgba(34,211,238,0);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(34,211,238,.38),
+                inset 0 0 16px rgba(34,211,238,.06);
+  }
+}
+
+/* ── 4. Turn-Slot: leeres Slot — sanftes Blinken ──────────── */
+.t-slot.is-empty::before {
+  animation: slotBlink 2.4s ease-in-out infinite !important;
+  display: inline-block !important;
+}
+@keyframes slotBlink {
+  0%,100% { opacity: .35; }
+  50%     { opacity: .8; }
+}
+
+/* ── 5. Checkout-Box: Border-Shimmer ────────────────────── */
+.checkout-box {
+  background: linear-gradient(135deg,
+    rgba(34,211,238,.06) 0%,
+    rgba(34,211,238,.02) 100%) !important;
+  position: relative;
+  overflow: hidden;
+}
+.checkout-box::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(34,211,238,.14) 40%,
+    rgba(255,255,255,.08) 50%,
+    rgba(34,211,238,.14) 60%,
+    transparent 100%);
+  background-size: 200% 100%;
+  animation: coShimmer 3s linear infinite;
+  pointer-events: none;
+}
+@keyframes coShimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* ── 6. Mode-Badge: accent-Scan ────────────────────────── */
+.mode-badge {
+  position: relative;
+  overflow: hidden;
+}
+.mode-badge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+    transparent 0%, rgba(255,255,255,.18) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: badgeScan 4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes badgeScan {
+  0%,80%,100% { background-position: -200% 0; opacity: 0; }
+  40%         { background-position: 200% 0;  opacity: 1; }
+}
+
+/* ── 7. Bust-Box: roter Glow-Puls + Shake ──────────────── */
+.bust-box {
+  animation: bustShake .4s ease-out,
+             bustGlow   1.8s ease-in-out .4s 2 !important;
+}
+@keyframes bustGlow {
+  0%,100% { box-shadow: 0 0 12px rgba(239,68,68,.3); }
+  50%     { box-shadow: 0 0 32px rgba(239,68,68,.65); }
+}
+
+/* ── 8. Gewinner-Konfetti: Sterne hinter Modal ───────────── */
+.win-confetti-star {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9500;
+  font-size: 1.2rem;
+  animation: confettiFall var(--dur, 2s) ease-in var(--delay, 0s) both;
+}
+@keyframes confettiFall {
+  0%   { opacity: 1; transform: translateY(-20px) rotate(0deg) scale(1); }
+  100% { opacity: 0; transform: translateY(100vh) rotate(720deg) scale(.3); }
+}
+
+/* ── 9. Spielverlauf-Einträge: Stagger beim Öffnen ───────── */
+#hist-list .hist-entry {
+  animation: histEntryIn .2s ease both;
+}
+#hist-list .hist-entry:nth-child(1)  { animation-delay: .02s; }
+#hist-list .hist-entry:nth-child(2)  { animation-delay: .04s; }
+#hist-list .hist-entry:nth-child(3)  { animation-delay: .06s; }
+#hist-list .hist-entry:nth-child(4)  { animation-delay: .08s; }
+#hist-list .hist-entry:nth-child(5)  { animation-delay: .10s; }
+#hist-list .hist-entry:nth-child(6)  { animation-delay: .12s; }
+#hist-list .hist-entry:nth-child(7)  { animation-delay: .14s; }
+#hist-list .hist-entry:nth-child(8)  { animation-delay: .16s; }
+#hist-list .hist-entry:nth-child(9)  { animation-delay: .18s; }
+#hist-list .hist-entry:nth-child(10) { animation-delay: .20s; }
+@keyframes histEntryIn {
+  from { opacity: 0; transform: translate3d(6px,0,0); }
+  to   { opacity: 1; transform: translate3d(0,0,0); }
+}
+
+/* ── 10. Input-Toggle: aktiver Tab — kein transform-Conflict ─ */
+.tog-btn.is-on {
+  box-shadow: 0 0 16px rgba(34,211,238,.28),
+              inset 0 1px 0 rgba(255,255,255,.18) !important;
+  animation: togPulse 3s ease-in-out infinite !important;
+}
+@keyframes togPulse {
+  0%,100% { box-shadow: 0 0 10px rgba(34,211,238,.2), inset 0 1px 0 rgba(255,255,255,.15); }
+  50%     { box-shadow: 0 0 22px rgba(34,211,238,.45), inset 0 1px 0 rgba(255,255,255,.2); }
+}
+
+/* ── 11. Runden-Tabelle: beste Runde animiert ──────────────── */
+.round-table td.rt-best {
+  animation: bestCellPulse 3s ease-in-out infinite !important;
+}
+@keyframes bestCellPulse {
+  0%,100% { color: var(--gold); text-shadow: 0 0 6px rgba(245,158,11,.3); }
+  50%     { color: var(--gold); text-shadow: 0 0 14px rgba(245,158,11,.6); }
+}
+
+/* ── 12. Hdr-Active-Score: sanftes Pulsieren ─────────────── */
+.hdr-active-score {
+  animation: scorePulse 3s ease-in-out infinite;
+}
+@keyframes scorePulse {
+  0%,100% { opacity: 1; }
+  50%     { opacity: .82; }
+}
+
+/* ── 13. Mob-Score-Strip: aktive Pille springt leicht ──────── */
+.mob-score-pill.is-active {
+  animation: pillBounce 2.5s ease-in-out infinite !important;
+}
+@keyframes pillBounce {
+  0%,100% { transform: scale(1);    }
+  50%     { transform: scale(1.03); }
+}
+
+/* ── 14. Setup-Card: langsam atmender Glow ─────────────────── */
+.setup-card {
+  animation: setupCardBreath 6s ease-in-out infinite !important;
+}
+@keyframes setupCardBreath {
+  0%,100% { box-shadow: 0 0 0 1px rgba(255,255,255,.04), 0 24px 60px rgba(0,0,0,.55); }
+  50%     { box-shadow: 0 0 0 1px rgba(34,211,238,.08),  0 24px 60px rgba(0,0,0,.55),
+                        0 0 40px rgba(34,211,238,.06); }
+}
+
+/* ── 15. Scroll-Indikator für Rundenübersicht ───────────────── */
+.round-table-wrap::after {
+  background: linear-gradient(transparent, var(--surface) 85%) !important;
+  animation: fadeGradient 3s ease-in-out infinite !important;
+}
+@keyframes fadeGradient {
+  0%,100% { opacity: 1; }
+  50%     { opacity: .6; }
+}
+
+/* ════════════════════════════════════════════════════════
+   SCROLLBAR FIX + WEITERE ANIMATIONEN  –  v5
+   ════════════════════════════════════════════════════════ */
+
+/* ── Scrollbar: unsichtbar außer beim aktiven Scrollen ────── */
+/* Firefox: scrollbar nimmt keinen Platz weg */
+.side-panel,
+.hist-list-wrap,
+.undo-history-panel,
+.input-center,
+.round-table-wrap,
+#tp-items,
+#screen-setup,
+.setup-card {
+  scrollbar-width: none !important;        /* Firefox */
+  -ms-overflow-style: none !important;     /* IE/Edge */
+}
+
+/* Webkit: komplett versteckt */
+.side-panel::-webkit-scrollbar,
+.hist-list-wrap::-webkit-scrollbar,
+.undo-history-panel::-webkit-scrollbar,
+.input-center::-webkit-scrollbar,
+.round-table-wrap::-webkit-scrollbar,
+#tp-items::-webkit-scrollbar,
+#screen-setup::-webkit-scrollbar,
+.setup-card::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
+
+/* Beim Hover auf Panel: sehr schmaler, transparenter Scrollbar */
+.side-panel:hover,
+.hist-list-wrap:hover,
+.undo-history-panel:hover {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34,211,238,.18) transparent;
+}
+.side-panel:hover::-webkit-scrollbar,
+.hist-list-wrap:hover::-webkit-scrollbar,
+.undo-history-panel:hover::-webkit-scrollbar {
+  width: 3px;
+  display: block !important;
+}
+.side-panel:hover::-webkit-scrollbar-thumb,
+.hist-list-wrap:hover::-webkit-scrollbar-thumb,
+.undo-history-panel:hover::-webkit-scrollbar-thumb {
+  background: rgba(34,211,238,.2);
+  border-radius: 2px;
+}
+.side-panel:hover::-webkit-scrollbar-track,
+.hist-list-wrap:hover::-webkit-scrollbar-track,
+.undo-history-panel:hover::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ════════════════════════════════════════════════════════
+   WEITERE SINNVOLLE ANIMATIONEN
+   ════════════════════════════════════════════════════════ */
+
+/* ── 1. Spieler-Wechsel: Turn-Player-Name Swipe ──────────── */
+.turn-player-name {
+  animation: turnNameIn .3s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes turnNameIn {
+  from { opacity: 0; transform: translateY(-10px) scale(.95); }
+  to   { opacity: 1; transform: translateY(0)     scale(1);   }
+}
+
+/* ── 2. Throw-Slot geleert (nach Undo) ─────────────────────── */
+.t-slot.is-empty {
+  animation: slotClear .22s ease both;
+}
+@keyframes slotClear {
+  from { opacity: .5; transform: scale(.88); }
+  to   { opacity: 1;  transform: scale(1);   }
+}
+
+/* ── 3. Undo-Button: Rückstoß-Pulse ohne Rotation ───────────── */
+.hdr-undo:active,
+.btn-ctrl:first-child:active {
+  animation: undoPulse .28s cubic-bezier(.34,1.4,.64,1) !important;
+}
+@keyframes undoPulse {
+  0%   { transform: scale(1);    box-shadow: none; }
+  35%  { transform: scale(.82);  box-shadow: 0 0 0 6px rgba(245,158,11,.35); }
+  70%  { transform: scale(1.08); box-shadow: 0 0 0 2px rgba(245,158,11,.15); }
+  100% { transform: scale(1);    box-shadow: none; }
+}
+
+/* ── 4. Cricket Marks: Erscheinen mit Rotation ──────────────── */
+.cr-marks {
+  transition: color .2s, opacity .2s !important;
+}
+.cr-marks.is-closed {
+  animation: markClose .35s cubic-bezier(.34,1.4,.64,1) both !important;
+}
+@keyframes markClose {
+  from { transform: scale(0) rotate(-90deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);   opacity: 1; }
+}
+
+/* ── 5. Score-Wert: Zahl-Flip bei Änderung ──────────────────── */
+.sc-val.is-changed {
+  animation: numberFlip .35s cubic-bezier(.34,1.56,.64,1) !important;
+}
+@keyframes numberFlip {
+  0%   { transform: scale(1);    color: var(--text); }
+  30%  { transform: scale(1.22); color: var(--accent); }
+  100% { transform: scale(1);    color: var(--text); }
+}
+
+/* ── 6. Header-Score: Countdown-Effekt wenn Score sinkt ─────── */
+.hdr-active-score.is-updated {
+  animation: hdrScoreFlash .3s ease both;
+}
+@keyframes hdrScoreFlash {
+  0%   { color: var(--text);   transform: scale(1);    }
+  40%  { color: var(--accent); transform: scale(1.15); }
+  100% { color: var(--text);   transform: scale(1);    }
+}
+
+/* ── 7. Letzter-Zug-Box: Slide-In von unten ─────────────────── */
+.last-turn-box:not(.hidden) {
+  animation: lastTurnIn .3s cubic-bezier(.16,1,.3,1) both !important;
+}
+@keyframes lastTurnIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0);     }
+}
+
+/* ── 8. Ctrl-Buttons: Hover-Glow je nach Typ ────────────────── */
+.btn-ctrl {
+  position: relative;
+  overflow: hidden;
+}
+.btn-ctrl::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent);
+  transform: translateX(-100%);
+  transition: transform .3s;
+  pointer-events: none;
+}
+.btn-ctrl:hover::before {
+  transform: translateX(100%);
+}
+
+/* ── 9. Bot-Zug-Indikator: pulsierender Punkt ───────────────── */
+.bot-thinking::after {
+  content: '●●●';
+  display: inline-block;
+  letter-spacing: .2em;
+  color: var(--accent);
+  animation: botDots 1.2s ease-in-out infinite;
+  font-size: .6rem;
+  margin-left: .4em;
+  vertical-align: middle;
+}
+@keyframes botDots {
+  0%,100% { opacity: .2; transform: scale(.9); }
+  50%     { opacity: 1;  transform: scale(1.1); }
+}
+
+/* ── 10. Checkout Arrow: Pfeil pulsiert ─────────────────────── */
+.co-arrow {
+  animation: arrowPulse 1.5s ease-in-out infinite !important;
+  display: inline-block;
+}
+@keyframes arrowPulse {
+  0%,100% { opacity: .4; transform: translateX(0);   }
+  50%     { opacity: .9; transform: translateX(2px);  }
+}
+
+/* ── 11. Checkout Darts: erscheinen gestaffelt ───────────────── */
+.co-dart {
+  animation: dartBadgeIn .25s cubic-bezier(.34,1.4,.64,1) both;
+}
+.co-darts .co-dart:nth-child(1) { animation-delay: .0s; }
+.co-darts .co-dart:nth-child(3) { animation-delay: .08s; }
+.co-darts .co-dart:nth-child(5) { animation-delay: .16s; }
+@keyframes dartBadgeIn {
+  from { opacity: 0; transform: scale(.7) translateY(4px); }
+  to   { opacity: 1; transform: scale(1)  translateY(0);   }
+}
+
+/* ── 12. Spielverlauf-Toggle: Icon dreht beim Öffnen ─────────── */
+.undo-history-toggle {
+  transition: var(--trans-smooth) !important;
+}
+.undo-history-toggle:hover {
+  transform: translateY(-1px) !important;
+}
+
+/* ── 13. Rundenübersicht: neue Zeile erscheint ──────────────── */
+.round-table tr {
+  animation: tableRowIn .2s ease both;
+}
+.round-table tbody tr:last-child { animation-delay: .05s; }
+@keyframes tableRowIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── 14. Board-Segment-Klick: kurzer Bounce ─────────────────── */
+.board-seg:active {
+  filter: brightness(2.2) saturate(1.5) drop-shadow(0 0 10px rgba(34,211,238,.8)) !important;
+  transition: filter .04s !important;
+}
+
+/* ── 15. Panel-Title: langsamer Akkzent-Gradient ────────────── */
+.panel-title {
+  background: linear-gradient(90deg,
+    var(--dim) 0%,
+    rgba(34,211,238,.55) 45%,
+    rgba(255,255,255,.35) 50%,
+    rgba(34,211,238,.55) 55%,
+    var(--dim) 100%) !important;
+  background-size: 300% auto !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  animation: panelShimmer 7s linear infinite !important;
+}
+@keyframes panelShimmer {
+  from { background-position: 300% center; }
+  to   { background-position: -300% center; }
+}
+
+/* ── 16. Restore-Banner: Attention-Wobble ───────────────────── */
+.restore-banner.is-visible {
+  animation: bannerWobble 4s ease-in-out 1s infinite !important;
+}
+@keyframes bannerWobble {
+  0%,85%,100% { transform: translateX(-50%) translateY(0); }
+  88%          { transform: translateX(-50%) translateY(-3px); }
+  92%          { transform: translateX(-50%) translateY(0); }
+  96%          { transform: translateX(-50%) translateY(-2px); }
+}
+
+/* ── 17. Mobile-Tab-Badge (Bust-Indikator): Ring-Pulse ──────── */
+.mob-tab-badge:not(.hidden) {
+  animation: tabBadgePulse .8s ease-in-out infinite !important;
+}
+@keyframes tabBadgePulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,.5); }
+  50%     { box-shadow: 0 0 0 5px rgba(239,68,68,0); }
+}
+
+/* ── 18. Vollbild-Button: Expand-Hint beim Hover ────────────── */
+#btn-fullscreen:hover {
+  letter-spacing: .1em !important;
+  transform: translateY(-2px) scale(1.1) !important;
+}
+
+/* ── 19. Bestenliste-Zeilen: Hover-Highlight ────────────────── */
+#pstats-body tr:hover td {
+  background: rgba(34,211,238,.04) !important;
+  transition: background .15s;
+}
+
+/* ── 20. Setup: Dartboard-Glow beim Hover auf Hero ──────────── */
+.setup-hero-board-wrap:hover .setup-hero-svg {
+  animation: heroSpin 6s linear infinite, heroHoverScale .2s ease forwards !important;
+}
+@keyframes heroHoverScale {
+  from { opacity: 1; }
+  to   { filter: drop-shadow(0 0 18px rgba(34,211,238,.7)); }
+}
+.setup-hero-board-wrap:hover ~ .setup-logo-wrap .setup-logo-letter {
+  animation: letterDrop .2s ease both !important;
+  color: var(--accent) !important;
+}
+
+/* ════════════════════════════════════════════════════════
+   SCROLLBAR FIX + WEITERE ANIMATIONEN  –  v5
+   ════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────
+   SCROLLBAR: überall unsichtbar, nur bei hover sichtbar
+───────────────────────────────────────────────────────── */
+
+/* Firefox */
+* {
+  scrollbar-width: none;
+  scrollbar-color: transparent transparent;
+}
+
+/* WebKit / Blink */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+  transition: background .2s;
+}
+
+/* Nur beim direkten Hover auf scrollbares Element sichtbar */
+.side-panel:hover::-webkit-scrollbar-thumb,
+.hist-list-wrap:hover::-webkit-scrollbar-thumb,
+.round-table-wrap:hover::-webkit-scrollbar-thumb,
+#tp-items:hover::-webkit-scrollbar-thumb,
+.setup-card:hover::-webkit-scrollbar-thumb,
+#screen-setup:hover::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.15);
+}
+
+.side-panel:hover::-webkit-scrollbar-thumb:hover,
+.hist-list-wrap:hover::-webkit-scrollbar-thumb:hover,
+.round-table-wrap:hover::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,.28);
+}
+
+/* Firefox: nur bei hover sichtbar (via overlay trick) */
+.side-panel        { scrollbar-width: none; }
+.hist-list-wrap    { scrollbar-width: none; }
+.round-table-wrap  { scrollbar-width: none; }
+
+.side-panel:hover        { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.15) transparent; }
+.hist-list-wrap:hover    { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.15) transparent; }
+.round-table-wrap:hover  { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.15) transparent; }
+
+/* ── Undo-history panel scrollbar ───────────────────────── */
+.undo-history-panel { scrollbar-width: none; }
+.undo-history-panel:hover { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.12) transparent; }
+#undo-history-list { overflow-y: auto; scrollbar-width: none; }
+#undo-history-list:hover { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.12) transparent; }
+
+/* ─────────────────────────────────────────────────────────
+   WEITERE ANIMATIONEN
+───────────────────────────────────────────────────────── */
+
+/* ── A. Undo-Button: Glow-Burst ohne Rotation ──────────── */
+.btn-ctrl:first-child:active,
+.hdr-undo:active {
+  animation: undoGlowBurst .28s cubic-bezier(.34,1.4,.64,1) !important;
+}
+@keyframes undoGlowBurst {
+  0%   { transform: scale(1);    background: var(--surface2); }
+  30%  { transform: scale(.84);  background: rgba(245,158,11,.25); box-shadow: 0 0 18px rgba(245,158,11,.5); }
+  65%  { transform: scale(1.1);  background: rgba(245,158,11,.12); }
+  100% { transform: scale(1);    background: var(--surface2); box-shadow: none; }
+}
+
+/* ── B. Neuer Spieler dran — Spieler-Name im Turn-Panel ── */
+.turn-player-name {
+  animation: playerNameIn .35s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes playerNameIn {
+  from { opacity: 0; transform: translateY(-8px) scale(.94); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+/* ── C. Throw-Slot: Slot leuchtet kurz beim Füllen ──────── */
+.t-slot.is-filled {
+  animation: slotFillGlow .4s ease-out !important;
+}
+@keyframes slotFillGlow {
+  0%   { transform: scale(.7); opacity: .4; box-shadow: none; }
+  50%  { transform: scale(1.08); box-shadow: 0 0 18px rgba(34,211,238,.5); }
+  100% { transform: scale(1); opacity: 1; box-shadow: 0 0 8px rgba(34,211,238,.2); }
+}
+
+/* ── D. Neue Runde — Runden-Zahl pulsiert kurz ──────────── */
+#round-num {
+  display: inline-block;
+  transition: color .2s;
+}
+.round-num-bump {
+  animation: roundBump .45s cubic-bezier(.34,1.56,.64,1) !important;
+}
+@keyframes roundBump {
+  0%   { transform: scale(1);    color: var(--dim); }
+  40%  { transform: scale(1.5);  color: var(--accent); }
+  100% { transform: scale(1);    color: var(--dim); }
+}
+
+/* ── E. Checkout erscheint — Pfeile springen ────────────── */
+.co-arrow {
+  display: inline-block;
+  animation: arrowBounce 1.6s ease-in-out infinite;
+}
+.co-darts .co-dart:nth-child(1) .co-arrow { animation-delay: 0s; }
+.co-darts .co-arrow:nth-child(2) { animation-delay: .15s; }
+.co-darts .co-arrow:nth-child(4) { animation-delay: .3s; }
+@keyframes arrowBounce {
+  0%,100% { transform: translateX(0); }
+  50%     { transform: translateX(3px); }
+}
+
+/* ── F. Dart-Einschlag: Board-Segment flash ─────────────── */
+.board-seg-hit {
+  animation: segHit .3s ease-out !important;
+  filter: brightness(3) saturate(1.5) !important;
+}
+@keyframes segHit {
+  0%   { filter: brightness(3) saturate(1.5); }
+  100% { filter: brightness(1) saturate(1); }
+}
+
+/* ── G. BULL-Treffer: epicer radialer Glow ──────────────── */
+.bull-flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 7000;
+  background: radial-gradient(circle at 50% 50%,
+    rgba(239,68,68,.25) 0%, transparent 55%);
+  animation: bullFlash .5s ease-out both;
+}
+@keyframes bullFlash {
+  0%   { opacity: 1; transform: scale(.3); }
+  60%  { opacity: .8; transform: scale(1.2); }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+
+/* ── H. Spielverlauf öffnen: Panel slides down ──────────── */
+.undo-history-panel:not(.hidden) {
+  animation: panelSlideDown .28s cubic-bezier(.16,1,.3,1) both;
+}
+@keyframes panelSlideDown {
+  from { opacity: 0; transform: translateY(-8px) scaleY(.92); transform-origin: top; }
+  to   { opacity: 1; transform: translateY(0)    scaleY(1); }
+}
+
+/* ── I. Restore-Banner: Aufmerksamkeit nach 3s ──────────── */
+.restore-banner.is-visible {
+  animation: bannerAttract 5s ease-in-out 3s infinite;
+}
+@keyframes bannerAttract {
+  0%,90%,100% { box-shadow: 0 8px 32px rgba(0,0,0,.5), 0 0 0 1px rgba(34,211,238,.15); }
+  95%         { box-shadow: 0 8px 40px rgba(34,211,238,.35), 0 0 0 2px rgba(34,211,238,.5); }
+}
+
+/* ── J. Cricket-Marks: Feld schließen — Spin-Checkmark ─── */
+.cr-marks.is-closed {
+  animation: markClosed .35s cubic-bezier(.34,1.4,.64,1) both;
+}
+@keyframes markClosed {
+  from { transform: scale(1.4) rotate(-30deg); opacity: .3; }
+  to   { transform: scale(1)   rotate(0deg);   opacity: .45; }
+}
+
+/* ── K. Win-Modal QR Code: einblenden ───────────────────── */
+.win-qr {
+  animation: qrIn .5s ease .9s both !important;
+}
+@keyframes qrIn {
+  from { opacity: 0; transform: scale(.7) rotate(-5deg); }
+  to   { opacity: .8; transform: scale(1) rotate(0deg); }
+}
+
+/* ── L. Header: Spielerwechsel-Highlight ────────────────── */
+.hdr-active-name {
+  animation: nameHighlight .3s ease both;
+}
+@keyframes nameHighlight {
+  0%,100% { text-shadow: none; }
+  40%     { text-shadow: 0 0 12px rgba(34,211,238,.6); }
+}
+
+/* ── M. Rundenüberblick: neue beste Zeile springt ─────────── */
+.rt-best {
+  animation: bestRowIn .4s cubic-bezier(.34,1.4,.64,1) both,
+             bestCellPulse 3s ease-in-out infinite !important;
+}
+
+/* ── N. Mob-Bust Toast: von oben einfahren ───────────────── */
+.mob-bust.is-visible {
+  animation: mobBustIn .3s cubic-bezier(.34,1.3,.64,1) both !important;
+}
+@keyframes mobBustIn {
+  from { transform: translateY(-100%) scale(.8); opacity: 0; }
+  to   { transform: translateY(0)     scale(1);  opacity: 1; }
+}
+
+/* ── O. Score-Karte: Sieg — goldener Glitter-Rand ─────────── */
+.score-card.is-winner {
+  border-color: var(--gold) !important;
+  animation: winnerCard 2s ease-in-out infinite !important;
+}
+@keyframes winnerCard {
+  0%,100% { box-shadow: 0 0 12px rgba(245,158,11,.2); }
+  50%     { box-shadow: 0 0 32px rgba(245,158,11,.55), inset 0 0 20px rgba(245,158,11,.05); }
+}
+
+/* ════════════════════════════════════════════════════════
+   ANIMATIONS v4 — Scrollbar-Fix + neue Animationen
+   ════════════════════════════════════════════════════════ */
+
+/* ── 1. SCROLLBAR-FIX: unsichtbar bis Hover ─────────────
+   Das Undo-Panel verursacht sichtbaren Scrollbalken.
+   Alle scrollbaren Bereiche: Balken nur bei Hover zeigen.
+─────────────────────────────────────────────────────── */
+.side-panel,
+.undo-history-panel,
+.round-table-wrap,
+.hist-list-wrap,
+.sp-grid,
+.ui-theme-card,
+#tp-items,
+.setup-card,
+#screen-setup .setup-inner {
+  scrollbar-width: none !important;         /* Firefox */
+  -ms-overflow-style: none !important;      /* IE/Edge */
+}
+
+.side-panel::-webkit-scrollbar,
+.undo-history-panel::-webkit-scrollbar,
+.round-table-wrap::-webkit-scrollbar,
+.hist-list-wrap::-webkit-scrollbar,
+.sp-grid::-webkit-scrollbar,
+.ui-theme-card::-webkit-scrollbar,
+#tp-items::-webkit-scrollbar,
+.setup-card::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+}
+
+/* Nur auf Hover anzeigen (Desktop) */
+@media (hover: hover) {
+  .side-panel:hover,
+  .undo-history-panel:hover,
+  .round-table-wrap:hover {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(34,211,238,.25) transparent !important;
+  }
+  .side-panel:hover::-webkit-scrollbar,
+  .undo-history-panel:hover::-webkit-scrollbar,
+  .round-table-wrap:hover::-webkit-scrollbar {
+    display: block !important;
+    width: 4px !important;
+  }
+  .side-panel:hover::-webkit-scrollbar-track,
+  .undo-history-panel:hover::-webkit-scrollbar-track,
+  .round-table-wrap:hover::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .side-panel:hover::-webkit-scrollbar-thumb,
+  .undo-history-panel:hover::-webkit-scrollbar-thumb,
+  .round-table-wrap:hover::-webkit-scrollbar-thumb {
+    background: rgba(34,211,238,.25);
+    border-radius: 4px;
+  }
+}
+
+/* Undo-Panel: Slide-Down statt abruptem Erscheinen */
+.undo-history-panel:not(.hidden) {
+  animation: slideDown .22s cubic-bezier(.16,1,.3,1) both;
+  transform-origin: top;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: scaleY(.7) translateY(-8px); }
+  to   { opacity: 1; transform: scaleY(1) translateY(0); }
+}
+
+/* ── 2. NEUE ANIMATIONEN ─────────────────────────────── */
+
+/* Dart-Einschlag-Welle auf der Scheibe beim Wurf */
+.dart-hit-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  pointer-events: none;
+  z-index: 20;
+  animation: dartRing .55s ease-out both;
+  transform: translate(-50%, -50%);
+}
+@keyframes dartRing {
+  from { width: 10px; height: 10px; opacity: .9; }
+  to   { width: 60px; height: 60px; opacity: 0; }
+}
+
+/* Multiplier-Button: Wellenpuls wenn aktiv */
+.mult-btn.is-on {
+  animation: multPulse 2.5s ease-in-out infinite !important;
+}
+@keyframes multPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(34,211,238,.0); }
+  50%     { box-shadow: 0 0 0 5px rgba(34,211,238,.12); }
+}
+.mult-btn[data-m="2"].is-on { animation: multPulseD 2.5s ease-in-out infinite !important; }
+@keyframes multPulseD {
+  0%,100% { box-shadow: 0 0 0 0 rgba(34,211,238,.0); }
+  50%     { box-shadow: 0 0 0 5px rgba(34,211,238,.15); }
+}
+.mult-btn[data-m="3"].is-on { animation: multPulseT 2.5s ease-in-out infinite !important; }
+@keyframes multPulseT {
+  0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,.0); }
+  50%     { box-shadow: 0 0 0 5px rgba(34,197,94,.18); }
+}
+
+/* Throw-Slot: Zahl springt rein */
+.t-slot.is-filled {
+  animation: slotBounce .28s cubic-bezier(.34,1.56,.64,1) both !important;
+}
+@keyframes slotBounce {
+  0%  { transform: scale(.5) rotate(-5deg); opacity: .3; }
+  70% { transform: scale(1.08) rotate(1deg); }
+  100%{ transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Score Value: zählt runter (Zahl flackert kurz) */
+.sc-val.is-changed {
+  animation: scoreCount .35s cubic-bezier(.34,1.4,.64,1) !important;
+}
+@keyframes scoreCount {
+  0%  { transform: scale(1.22); color: var(--accent); }
+  60% { transform: scale(.96); }
+  100%{ transform: scale(1); }
+}
+
+/* Checkout-Box: Aufmerksamkeits-Pulse */
+.checkout-box {
+  animation: coEntrance .3s cubic-bezier(.34,1.4,.64,1) !important;
+}
+.checkout-box .co-darts {
+  animation: coDartsIn .4s cubic-bezier(.16,1,.3,1) .1s both;
+}
+@keyframes coDartsIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Te-Throw: Jeder Wurf erscheint zeitversetzt */
+.te-throw:nth-child(1) { animation: teThrowIn .25s ease .05s both; }
+.te-throw:nth-child(2) { animation: teThrowIn .25s ease .15s both; }
+.te-throw:nth-child(3) { animation: teThrowIn .25s ease .25s both; }
+@keyframes teThrowIn {
+  from { opacity: 0; transform: translateY(8px) scale(.85); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Turn-End total: Einblend-Zahl */
+.te-total {
+  animation: teTotal .35s cubic-bezier(.34,1.3,.64,1) .35s both;
+}
+@keyframes teTotal {
+  from { opacity: 0; transform: scale(.6); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* BUST: Roter Blitz */
+.turn-end-card.is-bust {
+  animation: bustCard .35s ease both !important;
+}
+@keyframes bustCard {
+  0%  { transform: scale(.82); opacity: 0; border-color: var(--red); }
+  40% { transform: scale(1.04); }
+  70% { box-shadow: 0 0 40px rgba(239,68,68,.5); }
+  100%{ transform: scale(1); opacity: 1; }
+}
+
+/* Cricket: Marks-Zelle schließt sich mit Animation */
+.cr-marks.is-closed {
+  animation: markClose .3s ease both;
+}
+@keyframes markClose {
+  0%  { transform: scale(1.4) rotate(-15deg); opacity: .5; }
+  60% { transform: scale(.9) rotate(5deg); }
+  100%{ transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Panel erscheint beim Spielstart */
+#panel-left,
+#panel-right {
+  animation: panelSlideIn .4s cubic-bezier(.16,1,.3,1) both;
+}
+#panel-left  { animation-delay: .05s; }
+#panel-right { animation-delay: .1s;  }
+@keyframes panelSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Histogramm-Eintrag: neuer Eintrag blinkt kurz auf */
+.hist-entry.is-new {
+  animation: histNew .5s ease both;
+}
+@keyframes histNew {
+  0%  { background: rgba(34,211,238,.12); }
+  100%{ background: transparent; }
+}
+
+/* Rundenübersicht: neue Zeile */
+.round-table tr.is-new td {
+  animation: rtNew .6s ease both;
+}
+@keyframes rtNew {
+  from { background: rgba(34,211,238,.1); }
+  to   { background: transparent; }
+}
+
+/* Header Score: springt wenn Zug wechselt */
+.hdr-active-score {
+  display: inline-block;
+}
+.hdr-active-score.is-updated {
+  animation: hdrScoreUp .3s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes hdrScoreUp {
+  from { transform: translateY(-6px); opacity: .4; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+/* Mode-Badge: subtiles Aufleuchten beim Spielstart */
+.mode-badge.is-new {
+  animation: badgeNew .6s ease both;
+}
+@keyframes badgeNew {
+  0%  { transform: scale(.7); opacity: 0; }
+  60% { transform: scale(1.08); }
+  100%{ transform: scale(1); opacity: 1; }
+}
+
+/* Player name in turn panel: sanfter Wechsel */
+.turn-player-name {
+  animation: turnNameIn .25s ease both;
+}
+@keyframes turnNameIn {
+  from { opacity: .3; transform: translateX(-6px); }
+  to   { opacity: 1;  transform: translateX(0); }
+}
+
+/* Undo: Slots „leeren" sich animiert */
+.t-slot.is-empty {
+  transition: all .2s cubic-bezier(.4,0,.2,1) !important;
+}
+
+/* Controls-Bereich: erscheint von unten */
+.controls {
+  animation: controlsIn .5s cubic-bezier(.16,1,.3,1) .15s both;
+}
+@keyframes controlsIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Score-Karte: active wird hervorgehoben mit Slide */
+.score-card.is-active {
+  animation: activeCardIn .3s cubic-bezier(.16,1,.3,1) both, activePulse 3s ease-in-out .3s infinite !important;
+}
+@keyframes activeCardIn {
+  from { opacity: .4; transform: translateX(-4px); }
+  to   { opacity: 1;  transform: translateX(0); }
+}
+
+/* Dartscheibe dreht sich beim ersten Laden kurz */
+#dart-svg.is-loading {
+  animation: boardSpin .6s cubic-bezier(.34,1.1,.64,1) both;
+}
+@keyframes boardSpin {
+  from { transform: rotate(-12deg) scale(.92); opacity: .6; }
+  to   { transform: rotate(0deg) scale(1); opacity: 1; }
+}
+
+/* Board hover: leichter Glow-Ring */
+#dart-svg:not(.is-loading) {
+  transition: filter .3s, transform .3s !important;
+}
+#dart-svg:hover {
+  filter:
+    drop-shadow(0 0 22px rgba(34,211,238,.3))
+    drop-shadow(0 6px 14px rgba(0,0,0,.8)) !important;
+  transform: scale(1.008);
+}
+
+/* Win-Konfetti-Partikel (JS injiziert) */
+.win-confetti {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  pointer-events: none;
+  animation: confettiFall var(--dur,1.5s) ease-in var(--delay,0s) both;
+}
+@keyframes confettiFall {
+  0%   { transform: translateY(-20px) rotate(0deg) scale(1); opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateY(220px) rotate(var(--spin,360deg)) scale(.4); opacity: 0; }
+}
+
+/* Restore banner: slide up smoother */
+.restore-banner.is-visible {
+  animation: bannerSlide .4s cubic-bezier(.16,1,.3,1) both !important;
+}
+@keyframes bannerSlide {
+  from { opacity: 0; transform: translateX(-50%) translateY(24px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ── Board + style-button column (stable, no animation on parent) ── */
+.setup-hero-board-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;          /* fixed gap — never shifts */
+  flex-shrink: 0;
+}
+
+/* Button is in normal flow inside board-col — must be relative for ripple */
+.setup-board-style-btn {
+  position: relative !important;  /* JS ripple needs this */
+  bottom: auto !important;
+  left: auto !important;
+  transform: none !important;
+  overflow: hidden !important;    /* clips ripple to button bounds */
+}
+.setup-board-style-btn:hover {
+  transform: none !important;
+}
+
+/* ── Undo Animation — Zeitstrahl-Rücklauf ──────────── */
+
+/* Ganzer Turn-Bereich: kurze Sepia-Überblendung */
+#panel-right.undo-rewind {
+  animation: undoRewindPanel .5s ease both;
+}
+@keyframes undoRewindPanel {
+  0%   { filter: brightness(1) saturate(1); }
+  20%  { filter: brightness(1.4) saturate(0) sepia(.8); }
+  60%  { filter: brightness(1.1) saturate(.3); }
+  100% { filter: brightness(1) saturate(1); }
+}
+
+/* Throw-Slots: alle schrumpfen gleichzeitig nach innen */
+.t-slot.undo-shrink {
+  animation: undoShrink .35s cubic-bezier(.4,0,.2,1) both !important;
+}
+@keyframes undoShrink {
+  0%   { transform: scale(1);   opacity: 1; }
+  40%  { transform: scale(.55); opacity: .4; filter: blur(2px); }
+  100% { transform: scale(1);   opacity: 1; filter: blur(0); }
+}
+
+/* Score-Wert: zählt kurz hoch (zeigt Rückgabe der Punkte) */
+.sc-val.undo-score-up {
+  animation: undoScoreUp .45s cubic-bezier(.34,1.4,.64,1) both !important;
+}
+@keyframes undoScoreUp {
+  0%   { color: var(--gold); transform: scale(1); }
+  30%  { color: var(--gold); transform: scale(1.25) translateY(-4px); }
+  70%  { transform: scale(.97); }
+  100% { color: inherit;     transform: scale(1); }
+}
+
+/* Zeitleiste — horizontale Linie die von rechts nach links wischt */
+.undo-timeline {
+  position: fixed;
+  top: var(--hdr-h, 56px);
+  left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, var(--gold) 30%, var(--accent) 70%, transparent 100%);
+  pointer-events: none;
+  z-index: 200;
+  transform-origin: right;
+  animation: undoTimeline .5s cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes undoTimeline {
+  0%   { transform: scaleX(1);   opacity: 1; }
+  60%  { transform: scaleX(.05); opacity: .8; }
+  100% { transform: scaleX(0);   opacity: 0; }
+}
+
+/* Partikel-Burst vom Undo-Button */
+.undo-particle {
+  position: fixed;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 300;
+  animation: undoParticle var(--dur,.4s) ease-out both;
+}
+@keyframes undoParticle {
+  0%   { transform: translate(0,0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx,0px), var(--ty,-30px)) scale(0); opacity: 0; }
+}
+
+/* ── Text visibility boost (global override) ────────────── */
+.sc-avg,
+.turn-summary,
+.hist-none,
+.hist-entry,
+.uh-label,
+.kbd-hint,
+.co-score,
+.rt-none,
+.setup-score-ticker .sst-label,
+.out-toggle-label,
+.setup-section-title,
+.panel-title,
+.tp-desc,
+.msp-name,
+.lt-header {
+  color: var(--text2) !important;
+}
+
+.sc-name,
+.round-label,
+.uh-empty,
+.hist-pts,
+.te-total-label,
+.te-name,
+.cr-marks:not(.is-closed),
+.cr-p,
+.undo-history-badge {
+  color: var(--text2) !important;
+}
+
+/* Slightly larger than before for key secondary text */
+.sc-avg        { font-size: .68rem !important; }
+.turn-summary  { font-size: .72rem !important; }
+.hist-entry    { font-size: .72rem !important; }
+.round-label   { font-size: .74rem !important; }
+
+/* ════════════════════════════════════════════════════════
+   ÜBERSCHRIFTEN — deutlich sichtbarer
+   ════════════════════════════════════════════════════════ */
+
+/* Panel-Titel (PUNKTESTAND, RUNDENÜBERSICHT, AKTUELLER ZUG …) */
+.panel-title {
+  font-size: .64rem !important;
+  color: var(--text2) !important;
+  letter-spacing: .38em !important;
+  border-bottom-color: var(--border2) !important;
+  text-shadow: 0 0 12px rgba(34,211,238,.15);
+  background: none !important;           /* disable shimmer gradient on text */
+  -webkit-text-fill-color: unset !important;
+}
+
+/* Setup-Abschnitt-Titel (SPIELMODUS, SPIELER) */
+.setup-section-title {
+  font-size: .65rem !important;
+  color: var(--text2) !important;
+  letter-spacing: .38em !important;
+  border-bottom-color: var(--border2) !important;
+}
+
+/* Aktiver Spieler im Header */
+.hdr-active-name {
+  font-size: .82rem !important;
+  color: #fff !important;
+  text-shadow: 0 0 12px rgba(34,211,238,.45);
+}
+
+/* Score-Anzeige im Header */
+.hdr-active-score {
+  font-size: 1.2rem !important;
+  color: #fff !important;
+  text-shadow: 0 0 10px rgba(255,255,255,.25);
+}
+
+/* Mode-Badge (501 DO / Cricket) */
+.mode-badge {
+  color: #fff !important;
+  background: rgba(34,211,238,.18) !important;
+  border-color: rgba(34,211,238,.5) !important;
+  font-size: .82rem !important;
+}
+
+/* Aktiver-Spieler-Name im rechten Turn-Panel */
+.turn-player-name {
+  font-size: 1.05rem !important;
+  color: #fff !important;
+  text-shadow: 0 0 16px rgba(34,211,238,.4);
+}
+
+/* Runden-Label */
+.round-label {
+  color: var(--text2) !important;
+  font-size: .76rem !important;
+}
+
+/* Setup-Logo */
+.setup-logo-text .setup-logo-letter {
+  text-shadow:
+    0 0 30px rgba(34,211,238,.7),
+    0 0 80px rgba(34,211,238,.3) !important;
+}
+.setup-logo-sub {
+  color: var(--text2) !important;
+  letter-spacing: .65em;
+}
+
+/* Gewinner-Modal-Titel */
+.win-label {
+  font-size: .82rem !important;
+  letter-spacing: .4em !important;
+  color: var(--gold) !important;
+  text-shadow: 0 0 16px rgba(245,158,11,.4);
+}
+.win-name {
+  color: #fff !important;
+  text-shadow: 0 0 24px rgba(255,255,255,.2);
+}
+.win-sub {
+  color: var(--text2) !important;
+  font-size: .78rem !important;
+}
+
+/* Statistik-Bezeichnungen im Gewinner-Modal */
+.ws-stat span {
+  color: var(--text2) !important;
+}
+
+/* Cricket-Tabellen-Kopf */
+.cr-row.cr-head .cr-p,
+.cr-row.cr-head .cr-num {
+  color: var(--text2) !important;
+  font-size: .6rem !important;
+}
+
+/* Rundenübersichts-Kopfzeile */
+.round-table th {
+  color: var(--text2) !important;
+  font-size: .56rem !important;
+  letter-spacing: .1em !important;
+}
+
+/* Letzter-Zug-Box Kopf */
+.lt-header {
+  color: var(--text2) !important;
+  font-size: .6rem !important;
+  letter-spacing: .3em !important;
 }
