@@ -38,7 +38,12 @@ body {
 }
 
 .hidden { display: none !important; }
-button { -webkit-tap-highlight-color: transparent; user-select: none; cursor: pointer; }
+button, label, a, [onclick] {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  cursor: pointer;
+  touch-action: manipulation; /* prevents double-tap zoom without blocking clicks */
+}
 
 
 /* ══════════════════════════════════════════════════════

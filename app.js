@@ -1404,16 +1404,14 @@ function flashMobBust(){
   const ORDER=['score','input','turn'];
   document.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;startY=e.touches[0].clientY;},{passive:true});
   document.addEventListener('touchend',e=>{
-    // Double-tap prevention on buttons
-    if(e.target.tagName==='BUTTON'||e.target.closest('button')){e.preventDefault();}
-    // Swipe tab navigation
+    // Swipe tab navigation only — no preventDefault (that blocks button clicks on mobile)
     if(!game||!isMobile())return;
     const dx=e.changedTouches[0].clientX-startX,dy=e.changedTouches[0].clientY-startY;
     if(Math.abs(dy)>Math.abs(dx)*.8||Math.abs(dx)<40)return;
     const cur=ORDER.indexOf(mobTab);
     if(dx<0&&cur<ORDER.length-1)setMobTab(ORDER[cur+1]);
     if(dx>0&&cur>0)setMobTab(ORDER[cur-1]);
-  },{passive:false}); // passive:false needed for preventDefault
+  },{passive:true});
 })();
 
 window.addEventListener('resize',()=>{if(game&&isMobile()){const nav=$('mob-nav');if(nav)nav.classList.remove('hidden');setMobTab(mobTab||'input');render();}});
