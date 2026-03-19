@@ -366,6 +366,7 @@ function startGame(withBot) {
   updateMuteButtons();
   render(); saveGameState();
   if (isMobile()) { const nav=$('mob-nav'); if(nav) nav.classList.remove('hidden'); setMobTab('input'); }
+
 }
 
 function goSetup() {
@@ -1368,7 +1369,8 @@ function selectBoardStyle(key){
 /* ─────────────────────────────────────────────────
    MOBILE NAV
 ───────────────────────────────────────────────── */
-function isMobile(){return window.innerWidth<=768;}
+function isMobile(){ return window.innerWidth <= 768 || isLandscapePhone(); }
+function isLandscapePhone(){ return window.innerWidth > window.innerHeight && window.innerHeight <= 560; }
 
 function setMobTab(tab){
   mobTab=tab;
@@ -1410,19 +1412,41 @@ function flashMobBust(){
   const badge=$('mob-tab-badge');if(badge){badge.classList.remove('hidden');setTimeout(()=>badge.classList.add('hidden'),2500);}
 }
 (function initTouch(){
-  let startX=0,startY=0;
+  let startX=0,startY=0,startTarget=null;
   const ORDER=['score','input','turn'];
-  document.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;startY=e.touches[0].clientY;},{passive:true});
+  document.addEventListener('touchstart',e=>{
+    startX=e.touches[0].clientX;
+    startY=e.touches[0].clientY;
+    startTarget=e.target;
+  },{passive:true});
   document.addEventListener('touchend',e=>{
-    // Swipe tab navigation only — no preventDefault (that blocks button clicks on mobile)
     if(!game||!isMobile())return;
-    const dx=e.changedTouches[0].clientX-startX,dy=e.changedTouches[0].clientY-startY;
-    if(Math.abs(dy)>Math.abs(dx)*.8||Math.abs(dx)<40)return;
+    // Don't swipe when touching the dartboard SVG itself
+    if(startTarget&&startTarget.closest('#dart-svg'))return;
+    const dx=e.changedTouches[0].clientX-startX;
+    const dy=e.changedTouches[0].clientY-startY;
+    // Require clearly horizontal gesture
+    if(Math.abs(dx)<50||Math.abs(dy)>Math.abs(dx)*.65)return;
     const cur=ORDER.indexOf(mobTab);
     if(dx<0&&cur<ORDER.length-1)setMobTab(ORDER[cur+1]);
     if(dx>0&&cur>0)setMobTab(ORDER[cur-1]);
   },{passive:true});
 })();
+
+
+
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => {
+    if (game) {
+      const nav = $('mob-nav');
+      if (isMobile()) {
+        if (nav) nav.classList.remove('hidden');
+        setMobTab(mobTab || 'input');
+      }
+      render();
+    }
+  }, 250);
+});
 
 window.addEventListener('resize',()=>{if(game&&isMobile()){const nav=$('mob-nav');if(nav)nav.classList.remove('hidden');setMobTab(mobTab||'input');render();}});
 
@@ -2107,12 +2131,32 @@ function drawSetupBgBoard() {
 function toggleHdrMenu() {
   const menu = $('hdr-overflow-menu');
   const btn  = $('hdr-overflow-btn');
-  if (!menu) return;
-  const open = menu.classList.toggle('is-open');
-  if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-  if (open) {
-    // Close on outside click
-    setTimeout(() => document.addEventListener('click', closeHdrMenu, { once: true }), 0);
+  if (!menu || !btn) return;
+
+  const isOpen = menu.classList.contains('is-open');
+  if (isOpen) { closeHdrMenu(); return; }
+
+  // Position menu below the button — works even if header has backdrop-filter
+  const rect = btn.getBoundingClientRect();
+  menu.style.top   = (rect.bottom + 6) + 'px';
+  menu.style.right = (window.innerWidth - rect.right) + 'px';
+  menu.style.left  = 'auto';
+
+  menu.classList.add('is-open');
+  btn.setAttribute('aria-expanded', 'true');
+
+  // Close on next outside tap (slight delay so this tap doesn't immediately close it)
+  setTimeout(() => document.addEventListener('pointerdown', _hdrMenuOutside, { capture: true }), 50);
+}
+
+function _hdrMenuOutside(e) {
+  const menu = $('hdr-overflow-menu');
+  const btn  = $('hdr-overflow-btn');
+  if (menu && !menu.contains(e.target) && e.target !== btn) {
+    closeHdrMenu();
+  } else {
+    // Re-attach if click was inside
+    setTimeout(() => document.addEventListener('pointerdown', _hdrMenuOutside, { capture: true }), 50);
   }
 }
 function closeHdrMenu() {
