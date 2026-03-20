@@ -366,6 +366,7 @@ function startGame(withBot) {
   updateMuteButtons();
   render(); saveGameState();
   if (isMobile()) { const nav=$('mob-nav'); if(nav) nav.classList.remove('hidden'); setMobTab('input'); }
+  setTimeout(() => { GameCanvas.start(); GameBgCanvas.start(); }, 100);
 
 }
 
@@ -376,6 +377,8 @@ function goSetup() {
   show('screen-setup');
   game=null; lastTurn=null; practiceMode=false;
   _overlayActive=false; kMult=1; histTabIdx=0; inputMode='board';
+  GameCanvas.stop();
+  GameBgCanvas.stop();
   // reset practice button UI
   const wrap=$('bot-speed-wrap'), btn=$('btn-practice');
   if (wrap) wrap.classList.add('hidden');
@@ -1548,6 +1551,7 @@ function applyUiTheme(key) {
   _activeUiTheme = key;
   document.body.dataset.uiTheme = key;
   try { localStorage.setItem('dartdash_ui_theme', key); } catch(e) {}
+  if (typeof GameCanvas !== 'undefined') { setTimeout(() => { GameCanvas.refreshColors(); GameBgCanvas.refreshColors(); }, 50); }
 
   // Update label
   const t = UI_THEMES.find(t => t.key === key);
@@ -1966,21 +1970,23 @@ function drawSetupBgBoard() {
     resize();
     window.addEventListener('resize', resize);
 
-    // Spawn initial particles
-    for (let i = 0; i < 70; i++) particles.push(makeParticle(true));
+    // Spawn initial particles — more, spread across full screen
+    for (let i = 0; i < 130; i++) particles.push(makeParticle(true));
 
     function makeParticle(anywhere) {
       const accent = getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#22d3ee';
+      // Mix accent color with slightly varied hues for visual richness
+      const colors = [accent, accent, accent, (accent + '88')];
       return {
         x: anywhere ? Math.random()*W : (Math.random() < .5 ? -10 : W+10),
-        y: Math.random()*H,
-        vx: (Math.random()-.5)*.35,
-        vy: (Math.random()-.5)*.35,
-        r: Math.random()*1.6+.4,
-        alpha: Math.random()*.65+.2,
-        color: accent,
-        life: Math.random()*200+100,
-        age: anywhere ? Math.random()*200 : 0,
+        y: anywhere ? Math.random()*H : Math.random()*H,
+        vx: (Math.random()-.5)*.5,
+        vy: (Math.random()-.5)*.5,
+        r: Math.random()*2.2+.6,
+        alpha: Math.random()*.75+.25,
+        color: colors[Math.floor(Math.random()*colors.length)].slice(0,7),
+        life: Math.random()*300+150,
+        age: anywhere ? Math.random()*300 : 0,
       };
     }
 
@@ -2009,14 +2015,14 @@ function drawSetupBgBoard() {
         for (let b = a+1; b < particles.length; b++) {
           const dx = particles[a].x-particles[b].x, dy = particles[a].y-particles[b].y;
           const dist = Math.sqrt(dx*dx+dy*dy);
-          if (dist < 100) {
+          if (dist < 130) {
             ctx.beginPath();
             ctx.moveTo(particles[a].x, particles[a].y);
             ctx.lineTo(particles[b].x, particles[b].y);
             const accent = particles[a].color;
-            const a2 = .10*(1-dist/100);
+            const a2 = .14*(1-dist/130);
             ctx.strokeStyle = accent + Math.round(a2*255).toString(16).padStart(2,'0');
-            ctx.lineWidth = .5;
+            ctx.lineWidth = .7;
             ctx.stroke();
           }
         }
@@ -2173,4 +2179,178 @@ function closeHdrMenu() {
       dot.classList.toggle('is-active', dot.dataset.tab === tab);
     });
   };
+})();
+
+
+
+/* ════════════════════════════════════════════════════════════
+   GAME CANVAS — particle background for input-center
+════════════════════════════════════════════════════════════ */
+const GameCanvas = (() => {
+  let raf = null, canvas = null, ctx = null, W = 0, H = 0, pts = [];
+  const N = 55;
+
+  const col = () => (getComputedStyle(document.body).getPropertyValue('--accent') || '#22d3ee').trim().slice(0,7);
+  const gold = () => (getComputedStyle(document.body).getPropertyValue('--gold') || '#f59e0b').trim().slice(0,7);
+
+  function mkPt(spread) {
+    const c = Math.random() < .75 ? col() : gold();
+    return {
+      x: spread ? Math.random()*W : (Math.random()<.5 ? -5 : W+5),
+      y: Math.random()*H,
+      vx:(Math.random()-.5)*.5, vy:(Math.random()-.5)*.5,
+      r: Math.random()*1.8+.5, a: Math.random()*.55+.15, c,
+      life:Math.random()*280+120, age: spread?Math.random()*280:0,
+    };
+  }
+
+  function resize() {
+    if (!canvas) return;
+    // Measure #input-center directly — it's always the right container
+    const ic = document.getElementById('input-center') || canvas.parentElement;
+    const r  = ic ? ic.getBoundingClientRect() : {width:300, height:300};
+    W = canvas.width  = Math.max(r.width,  1);
+    H = canvas.height = Math.max(r.height, 1);
+  }
+
+  function frame() {
+    if (!ctx) return;
+    // Sync size every frame in case layout changed (mobile tab switch etc.)
+    const ic = document.getElementById('input-center');
+    if (ic) {
+      const r = ic.getBoundingClientRect();
+      if (r.width > 1 && (canvas.width !== r.width || canvas.height !== r.height)) {
+        W = canvas.width  = r.width;
+        H = canvas.height = r.height;
+      }
+    }
+    ctx.clearRect(0,0,W,H);
+    for (let i=0; i<pts.length; i++) {
+      const p=pts[i]; p.age++; p.x+=p.vx; p.y+=p.vy;
+      if(p.x<-10)p.x=W+10; if(p.x>W+10)p.x=-10;
+      if(p.y<-10)p.y=H+10; if(p.y>H+10)p.y=-10;
+      const prog=p.age/p.life;
+      const al=p.a*(prog<.2?prog/.2:prog>.8?(1-prog)/.2:1);
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=p.c+Math.round(al*255).toString(16).padStart(2,'0');
+      ctx.fill();
+      if(p.age>p.life) pts[i]=mkPt(false);
+    }
+    for(let a=0;a<pts.length;a++) for(let b=a+1;b<pts.length;b++){
+      const dx=pts[a].x-pts[b].x, dy=pts[a].y-pts[b].y, d=Math.sqrt(dx*dx+dy*dy);
+      if(d<90){
+        ctx.beginPath(); ctx.moveTo(pts[a].x,pts[a].y); ctx.lineTo(pts[b].x,pts[b].y);
+        ctx.strokeStyle=pts[a].c+Math.round(.11*(1-d/90)*255).toString(16).padStart(2,'0');
+        ctx.lineWidth=.6; ctx.stroke();
+      }
+    }
+    raf = requestAnimationFrame(frame);
+  }
+
+  function start() {
+    canvas = document.getElementById('game-canvas');
+    if (!canvas) return;
+    ctx = canvas.getContext('2d');
+    resize();
+    pts = Array.from({length:N}, (_,i) => mkPt(true));
+    if (raf) cancelAnimationFrame(raf);
+    frame();
+  }
+
+  function stop() {
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+  }
+
+  function refreshColors() {
+    pts.forEach(p => { p.c = Math.random()<.75 ? col() : gold(); });
+  }
+
+  window.addEventListener('resize', () => { resize(); });
+
+  return { start, stop, refreshColors };
+})();
+
+
+/* ════════════════════════════════════════════════════════════
+   GAME BG CANVAS — subtle particle background for full screen-game
+════════════════════════════════════════════════════════════ */
+const GameBgCanvas = (() => {
+  let raf = null, canvas = null, ctx = null, W = 0, H = 0, pts = [];
+  const N = 80;
+
+  const col  = () => (getComputedStyle(document.body).getPropertyValue('--accent') || '#22d3ee').trim().slice(0,7);
+  const gold = () => (getComputedStyle(document.body).getPropertyValue('--gold')   || '#f59e0b').trim().slice(0,7);
+
+  function mkPt(spread) {
+    const c = Math.random() < .7 ? col() : gold();
+    return {
+      x: spread ? Math.random()*W : (Math.random()<.5 ? -5 : W+5),
+      y: Math.random()*H,
+      vx:(Math.random()-.5)*.38, vy:(Math.random()-.5)*.38,
+      r: Math.random()*1.6+.4, a: Math.random()*.4+.1, c,
+      life:Math.random()*320+140, age: spread?Math.random()*320:0,
+    };
+  }
+
+  function resize() {
+    if (!canvas) return;
+    const sg = document.getElementById('screen-game');
+    const r  = sg ? sg.getBoundingClientRect() : {width:window.innerWidth, height:window.innerHeight};
+    W = canvas.width  = Math.max(r.width,  1);
+    H = canvas.height = Math.max(r.height, 1);
+  }
+
+  function frame() {
+    if (!ctx) return;
+    const sg = document.getElementById('screen-game');
+    if (sg) {
+      const r = sg.getBoundingClientRect();
+      if (r.width > 1 && (canvas.width !== Math.round(r.width))) {
+        W = canvas.width  = r.width;
+        H = canvas.height = r.height;
+      }
+    }
+    ctx.clearRect(0, 0, W, H);
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i]; p.age++; p.x += p.vx; p.y += p.vy;
+      if (p.x < -10) p.x = W+10; if (p.x > W+10) p.x = -10;
+      if (p.y < -10) p.y = H+10; if (p.y > H+10) p.y = -10;
+      const prog = p.age / p.life;
+      const al   = p.a * (prog<.2 ? prog/.2 : prog>.8 ? (1-prog)/.2 : 1);
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = p.c + Math.round(al*255).toString(16).padStart(2,'0');
+      ctx.fill();
+      if (p.age > p.life) pts[i] = mkPt(false);
+    }
+    for (let a = 0; a < pts.length; a++) for (let b = a+1; b < pts.length; b++) {
+      const dx = pts[a].x-pts[b].x, dy = pts[a].y-pts[b].y, d = Math.sqrt(dx*dx+dy*dy);
+      if (d < 110) {
+        ctx.beginPath(); ctx.moveTo(pts[a].x,pts[a].y); ctx.lineTo(pts[b].x,pts[b].y);
+        ctx.strokeStyle = pts[a].c + Math.round(.09*(1-d/110)*255).toString(16).padStart(2,'0');
+        ctx.lineWidth = .5; ctx.stroke();
+      }
+    }
+    raf = requestAnimationFrame(frame);
+  }
+
+  function start() {
+    canvas = document.getElementById('game-bg-canvas');
+    if (!canvas) return;
+    ctx = canvas.getContext('2d');
+    resize();
+    pts = Array.from({length: N}, () => mkPt(true));
+    if (raf) cancelAnimationFrame(raf);
+    frame();
+  }
+
+  function stop() {
+    if (raf) { cancelAnimationFrame(raf); raf = null; }
+  }
+
+  function refreshColors() {
+    pts.forEach(p => { p.c = Math.random()<.7 ? col() : gold(); });
+  }
+
+  window.addEventListener('resize', resize);
+  return { start, stop, refreshColors };
 })();

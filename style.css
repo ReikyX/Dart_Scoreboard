@@ -89,10 +89,12 @@ input:focus-visible {
 
 /* ── Particle canvas (full background) ─────────────── */
 #setup-canvas {
-  position: absolute;
+  position: fixed;   /* fixed so it truly covers full viewport */
   inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-  z-index: 0;   /* above transparent bg, below setup-inner(z:1) */
+  z-index: 0;
 }
 
 /* ── Large background dartboard ─────────────────────── */
@@ -763,18 +765,31 @@ input:focus-visible {
   gap: .7rem;
   padding: 1.2rem;
   scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  scrollbar-color: rgba(34,211,238,.2) transparent;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 #panel-left {
-  border-right: 1px solid var(--border);
+  background: linear-gradient(
+    to right,
+    rgba(34,211,238,.13) 0%,
+    rgba(34,211,238,.07) 35%,
+    rgba(10,14,28,.45)   70%,
+    rgba(10,14,28,.55)   100%
+  );
+  border-right: 1px solid rgba(34,211,238,.22);
   animation-delay: .05s;
 }
 #panel-right {
-  border-left: 1px solid var(--border);
+  background: linear-gradient(
+    to left,
+    rgba(245,158,11,.12) 0%,
+    rgba(245,158,11,.06) 35%,
+    rgba(10,14,28,.45)   70%,
+    rgba(10,14,28,.55)   100%
+  );
+  border-left: 1px solid rgba(245,158,11,.22);
   animation: panelSlideIn .4s cubic-bezier(.16,1,.3,1) both;
   animation-delay: .1s;
   position: relative;
@@ -991,10 +1006,9 @@ input:focus-visible {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding-top: 15px;
   gap: .5rem;
   flex-shrink: 0;
-  position: relative;
-  isolation: isolate;
   width: 100%;
   margin: 0;
 }
@@ -1016,13 +1030,13 @@ input:focus-visible {
 }
 
 #dart-svg {
-  /* Width-only sizing: SVG fills container width, height auto via aspect-ratio.
-     max-height prevents overflow when screen is short.                        */
+  /* Desktop: fills board-wrap (flex:1) constrained to a square.
+     Uses min() so it never exceeds viewport height minus header and padding. */
   width: 100%;
   height: auto;
   aspect-ratio: 1;
-  max-width:  min(560px, calc(100dvh - var(--hdr-h) - 140px));
-  max-height: min(560px, calc(100dvh - var(--hdr-h) - 140px));
+  max-width:  min(100%, calc(100dvh - var(--hdr-h) - 110px));
+  max-height: calc(100dvh - var(--hdr-h) - 110px);
   position: relative;
   z-index: 1;
   border-radius: 50%;
@@ -2976,6 +2990,90 @@ body[data-ui-theme="sunset"] #screen-setup::before {
 
 
 /* Matrix canvas behind game content */
+
+
+/* ── Theme-specific panel gradients ─────────────────────── */
+
+body[data-ui-theme="nacht"] #panel-left {
+  background: linear-gradient(to right,  rgba(176,96,255,.15) 0%, rgba(176,96,255,.07) 35%, rgba(6,4,13,.5) 70%, rgba(6,4,13,.6) 100%);
+  border-right-color: rgba(176,96,255,.25);
+}
+body[data-ui-theme="nacht"] #panel-right {
+  background: linear-gradient(to left, rgba(128,48,224,.12) 0%, rgba(128,48,224,.05) 35%, rgba(6,4,13,.5) 70%, rgba(6,4,13,.6) 100%);
+  border-left-color: rgba(128,48,224,.22);
+}
+
+body[data-ui-theme="inferno"] #panel-left {
+  background: linear-gradient(to right,  rgba(255,90,0,.15) 0%, rgba(255,90,0,.07) 35%, rgba(13,4,0,.5) 70%, rgba(13,4,0,.6) 100%);
+  border-right-color: rgba(255,90,0,.25);
+}
+body[data-ui-theme="inferno"] #panel-right {
+  background: linear-gradient(to left, rgba(255,200,0,.12) 0%, rgba(255,200,0,.05) 35%, rgba(13,4,0,.5) 70%, rgba(13,4,0,.6) 100%);
+  border-left-color: rgba(255,200,0,.22);
+}
+
+body[data-ui-theme="forest"] #panel-left {
+  background: linear-gradient(to right,  rgba(74,224,64,.14) 0%, rgba(74,224,64,.06) 35%, rgba(3,10,3,.5) 70%, rgba(3,10,3,.6) 100%);
+  border-right-color: rgba(74,224,64,.22);
+}
+body[data-ui-theme="forest"] #panel-right {
+  background: linear-gradient(to left, rgba(48,192,40,.12) 0%, rgba(48,192,40,.05) 35%, rgba(3,10,3,.5) 70%, rgba(3,10,3,.6) 100%);
+  border-left-color: rgba(48,192,40,.2);
+}
+
+body[data-ui-theme="arctic"] #panel-left {
+  background: linear-gradient(to right,  rgba(160,228,255,.14) 0%, rgba(160,228,255,.06) 35%, rgba(3,6,14,.5) 70%, rgba(3,6,14,.6) 100%);
+  border-right-color: rgba(160,228,255,.22);
+}
+body[data-ui-theme="arctic"] #panel-right {
+  background: linear-gradient(to left, rgba(112,200,240,.12) 0%, rgba(112,200,240,.05) 35%, rgba(3,6,14,.5) 70%, rgba(3,6,14,.6) 100%);
+  border-left-color: rgba(112,200,240,.2);
+}
+
+body[data-ui-theme="retro"] #panel-left {
+  background: linear-gradient(to right,  rgba(255,176,0,.15) 0%, rgba(255,176,0,.07) 35%, rgba(12,8,0,.5) 70%, rgba(12,8,0,.6) 100%);
+  border-right-color: rgba(255,176,0,.25);
+}
+body[data-ui-theme="retro"] #panel-right {
+  background: linear-gradient(to left, rgba(255,220,0,.12) 0%, rgba(255,220,0,.05) 35%, rgba(12,8,0,.5) 70%, rgba(12,8,0,.6) 100%);
+  border-left-color: rgba(255,220,0,.2);
+}
+
+body[data-ui-theme="luxe"] #panel-left {
+  background: linear-gradient(to right,  rgba(212,168,32,.15) 0%, rgba(212,168,32,.07) 35%, rgba(6,5,2,.5) 70%, rgba(6,5,2,.6) 100%);
+  border-right-color: rgba(212,168,32,.25);
+}
+body[data-ui-theme="luxe"] #panel-right {
+  background: linear-gradient(to left, rgba(240,192,64,.12) 0%, rgba(240,192,64,.05) 35%, rgba(6,5,2,.5) 70%, rgba(6,5,2,.6) 100%);
+  border-left-color: rgba(240,192,64,.22);
+}
+
+body[data-ui-theme="sakura"] #panel-left {
+  background: linear-gradient(to right,  rgba(255,128,176,.15) 0%, rgba(255,128,176,.07) 35%, rgba(8,5,8,.5) 70%, rgba(8,5,8,.6) 100%);
+  border-right-color: rgba(255,128,176,.25);
+}
+body[data-ui-theme="sakura"] #panel-right {
+  background: linear-gradient(to left, rgba(224,88,144,.12) 0%, rgba(224,88,144,.05) 35%, rgba(8,5,8,.5) 70%, rgba(8,5,8,.6) 100%);
+  border-left-color: rgba(224,88,144,.22);
+}
+
+body[data-ui-theme="matrix"] #panel-left {
+  background: linear-gradient(to right,  rgba(0,255,65,.14) 0%, rgba(0,255,65,.06) 35%, rgba(0,8,0,.55) 70%, rgba(0,8,0,.65) 100%);
+  border-right-color: rgba(0,255,65,.22);
+}
+body[data-ui-theme="matrix"] #panel-right {
+  background: linear-gradient(to left, rgba(0,204,48,.12) 0%, rgba(0,204,48,.05) 35%, rgba(0,8,0,.55) 70%, rgba(0,8,0,.65) 100%);
+  border-left-color: rgba(0,204,48,.2);
+}
+
+body[data-ui-theme="sunset"] #panel-left {
+  background: linear-gradient(to right,  rgba(224,64,255,.15) 0%, rgba(224,64,255,.07) 35%, rgba(8,5,16,.5) 70%, rgba(8,5,16,.6) 100%);
+  border-right-color: rgba(224,64,255,.25);
+}
+body[data-ui-theme="sunset"] #panel-right {
+  background: linear-gradient(to left, rgba(255,144,32,.12) 0%, rgba(255,144,32,.05) 35%, rgba(8,5,16,.5) 70%, rgba(8,5,16,.6) 100%);
+  border-left-color: rgba(255,144,32,.22);
+}
 
 /* ════════════════════════════════════════════════════════
    GLASSMORPHISM · HOVER EFFECTS · ANIMATIONS  –  v3
@@ -5050,9 +5148,17 @@ body[data-ui-theme="sunset"] #screen-setup::before {
   }
 
   /* ══ LEFT 2/3 — input-center (board + all controls) ═════════ */
-  .side-panel,
-  #input-center {
+  .side-panel {
     position: static !important;
+    inset: auto !important;
+    display: none;              /* default hidden, JS shows via data-mob-tab */
+    height: 100%;
+    overflow-y: auto;
+    border: none !important;
+  }
+
+  #input-center {
+    position: relative !important;
     inset: auto !important;
     display: none;              /* default hidden, JS shows via data-mob-tab */
     height: 100%;
@@ -5269,9 +5375,19 @@ body[data-ui-theme="sunset"] #screen-setup::before {
   }
 
   /* Desktop panels: static in grid (not absolute) */
-  .side-panel,
-  #input-center {
+    .side-panel {
     position: static !important;
+    display: flex !important;
+    inset: auto !important;
+    height: 100%;
+    min-height: 0;    /* critical: allows grid items to shrink */
+    overflow-y: auto;
+    overflow-x: hidden;
+    border: none;
+  }
+
+  #input-center {
+    position: relative !important;
     display: flex !important;
     inset: auto !important;
     height: 100%;
@@ -5291,6 +5407,12 @@ body[data-ui-theme="sunset"] #screen-setup::before {
     justify-content: center;
     gap: .6rem;
     margin-top: 0;
+  }
+
+  /* Board-wrap: fills flex:1 column to size dart-svg automatically */
+  .board-wrap {
+    flex: 1;
+    min-height: 0;
   }
 
   /* Hide all mobile-only elements */
@@ -5329,4 +5451,49 @@ body[data-ui-theme="sunset"] #screen-setup::before {
 
   .hdr-overflow-btn { display: none !important; }
   .hdr-r .btn-icon  { display: flex !important; }
+}
+/* ── Game screen input-center particle canvas ─────────────── */
+#game-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;   /* above board-wrap (z:1), below overlay (z:50) */
+  opacity: .8;
+}
+
+/* Ensure input-center children sit above the canvas, except the overlay which manages its own positioning */
+#input-center > *:not(#game-canvas):not(#turn-end-overlay) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Overlay sits above everything including canvas */
+#input-center > #turn-end-overlay {
+  z-index: 50;
+}
+
+/* input-center must be position:relative so the game-canvas
+   (position:absolute) stays clipped inside it on all breakpoints */
+@media (min-width: 769px) {
+  #input-center {
+    position: relative !important;
+  }
+}
+
+/* ── Background canvas for full screen-game ──────────────── */
+#game-bg-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: .45;
+}
+/* All direct children of screen-game sit above bg canvas */
+#screen-game > *:not(#game-bg-canvas) {
+  position: relative;
+  z-index: 1;
 }

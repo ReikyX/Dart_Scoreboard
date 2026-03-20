@@ -123,6 +123,8 @@
 
 <!-- ════════════════ GAME SCREEN ═════════════════════ -->
 <main id="screen-game" class="hidden" aria-label="Dart Spiel">
+  <!-- Full-screen background particle canvas -->
+  <canvas id="game-bg-canvas" aria-hidden="true"></canvas>
 
   <header class="game-header">
     <div class="hdr-l">
@@ -160,6 +162,7 @@
 
     <!-- CENTER: Input -->
     <section class="input-center" id="input-center">
+      <canvas id="game-canvas" aria-hidden="true"></canvas>
       <div id="turn-end-overlay" class="hidden"></div>
 
       <!-- Mobile score strip -->
@@ -181,6 +184,12 @@
       <div class="board-wrap" id="board-wrap">
         <svg id="dart-svg" viewBox="0 0 460 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dartscheibe"></svg>
         <button class="btn-miss-board" onclick="doThrow(0,1)">◉ &nbsp;MISS</button>
+        <!-- Swipe dots — in flow, below miss button -->
+        <div class="swipe-dots" id="swipe-dots" aria-hidden="true">
+          <div class="swipe-dot" data-tab="score"></div>
+          <div class="swipe-dot is-active" data-tab="input"></div>
+          <div class="swipe-dot" data-tab="turn"></div>
+        </div>
       </div>
 
       <!-- Keypad -->
@@ -256,13 +265,6 @@
 
     </aside>
   </div><!-- /.game-layout -->
-
-  <!-- Swipe dots indicator -->
-  <div class="swipe-dots" id="swipe-dots" aria-hidden="true">
-    <div class="swipe-dot" data-tab="score"></div>
-    <div class="swipe-dot is-active" data-tab="input"></div>
-    <div class="swipe-dot" data-tab="turn"></div>
-  </div>
 
   <!-- Mobile bottom nav -->
   <nav class="mob-nav hidden" id="mob-nav" role="tablist" aria-label="Spielansichten">
