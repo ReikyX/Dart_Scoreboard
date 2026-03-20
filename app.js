@@ -666,7 +666,6 @@ function updateKeypadStyle() {
   });
 })();
 
-
 /* ─────────────────────────────────────────────────
    RIPPLE EFFECT on buttons
 ───────────────────────────────────────────────── */
@@ -1433,8 +1432,6 @@ function flashMobBust(){
   },{passive:true});
 })();
 
-
-
 window.addEventListener('orientationchange', () => {
   setTimeout(() => {
     if (game) {
@@ -1909,7 +1906,6 @@ function updateUiThemeGrid() {} // kept for compatibility
 document.addEventListener('DOMContentLoaded', () => {
   applyUiTheme(_activeUiTheme);
 });
-
 
 /* ════════════════════════════════════════════════════════
    SETUP BOARD STYLE BUTTON
