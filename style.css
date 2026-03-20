@@ -50,11 +50,26 @@ body {
 }
 
 .hidden { display: none !important; }
+
+/* Remove blue tap/focus highlight on ALL interactive elements */
+*, *::before, *::after {
+  -webkit-tap-highlight-color: transparent;
+}
+
 button, label, a, [onclick] {
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   cursor: pointer;
-  touch-action: manipulation; /* prevents double-tap zoom without blocking clicks */
+  touch-action: manipulation;
+  outline: none;
+}
+
+/* Restore outline for keyboard users only */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 
